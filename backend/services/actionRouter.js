@@ -606,6 +606,17 @@ function executeAction(action, data, currentUser) {
       const courses = readData("courses.json");
       const attendance = readData("attendance.json");
       const marks = readData("marks.json");
+      const departmentCounts = {};
+      students.forEach((s) => {
+        const key = s.department || "General";
+        departmentCounts[key] = (departmentCounts[key] || 0) + 1;
+      });
+
+      const passed = marks.filter(m => m.maxMarks > 0 && ((m.marks / m.maxMarks) * 100) >= 40).length;
+      const passRate = marks.length > 0 ? Math.round((passed / marks.length) * 100) : 0;
+      const presentCount = attendance.filter(a => a.status === "present").length;
+      const avgAttendance = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
+
       const report = {
         totalStudents: students.length,
         totalFaculty: faculty.length,
@@ -613,11 +624,26 @@ function executeAction(action, data, currentUser) {
         totalAttendanceRecords: attendance.length,
         totalMarksRecords: marks.length,
         departments: [...new Set(students.map(s => s.department))],
+        departmentCounts,
+        passRate,
+        averageAttendance: avgAttendance,
         averageGPA: students.length > 0
           ? (students.reduce((sum, s) => sum + (s.gpa || 0), 0) / students.length).toFixed(2)
           : "N/A",
       };
-      return { success: true, message: "University report generated.", data: report };
+      return {
+        success: true,
+        message:
+          "University Analytics Report\n" +
+          `Total Students: ${report.totalStudents}\n` +
+          `Departments: ${Object.entries(report.departmentCounts).map(([d, c]) => `${d}(${c})`).join(", ")}\n` +
+          `Average GPA: ${report.averageGPA}\n` +
+          `Average Attendance: ${report.averageAttendance}%\n` +
+          `Pass Rate: ${report.passRate}%\n` +
+          `Total Faculty: ${report.totalFaculty}\n` +
+          `Total Courses: ${report.totalCourses}`,
+        data: report,
+      };
     }
 
     default:

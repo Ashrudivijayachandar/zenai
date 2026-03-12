@@ -198,27 +198,147 @@ function buildGeminiSystemPrompt(allowedActions, liveContext) {
     }
   }
 
-  return `You are a university management AI. Your ONLY job is to convert any user input into a JSON action object.
+  return `You are the decision engine for a university agent.
+
+Your job is to classify intent from full conversation context and return one safe structured decision.
 
 CRITICAL RULES:
-1. Respond with ONLY a raw JSON object — absolutely no markdown, no code blocks, no explanations, no text before or after.
-2. Match names partially and case-insensitively (e.g. "harshini" matches "Harshini Reddy").
-3. Interpret synonyms: remove/delete/drop = delete action; show/list/get/display = list action; add/enroll/register/hire/create = create action.
-4. "Section A/B", "Class A/B", "Batch A" → treat as department context.
-5. If the user gives a bare keyword like "delete" with no name, use the most relevant list action instead.
-6. Never ask for clarification — always pick the most likely action and return it.
-7. ONLY use actions from the ALLOWED ACTIONS list below.
+1. Return ONLY valid JSON with no markdown.
+2. Use ONLY actions listed in ALLOWED ACTIONS.
+3. Respect intent direction:
+   - viewing intent (view/show/list/get/check/see) -> use read/list actions
+   - creating intent (create/add/new/enroll/register/schedule exam) -> use create actions
+   - update intent (update/change/edit/modify) -> use update actions
+   - delete intent (delete/remove/drop) -> use delete actions
+4. If required fields are missing, set action to "clarify" and ask naturally.
+5. Never invent placeholder values like "Unknown" or "TBD".
+6. Connect multi-turn context. If previous turn asked for student name and latest message is a name, continue that flow.
 
 ALLOWED ACTIONS AND DATA SCHEMAS:
 ${actionBlock}
 ${dataContext}
 
-EXAMPLES (input → output):
+EXAMPLES (input -> output):
 ${relevantExamples}
 
-TODAY'S DATE: ${new Date().toISOString().split("T")[0]}
+OUTPUT JSON SCHEMA:
+{
+  "action": "one of allowed actions OR clarify",
+  "data": {},
+  "message": "friendly one-line response",
+  "needs_more_info": false,
+  "missing_fields": []
+}
 
-Remember: respond ONLY with a JSON object, nothing else.`;
+TODAY'S DATE: ${new Date().toISOString().split("T")[0]}`;
+}
+
+function coerceConversationHistory(conversationContext) {
+  if (Array.isArray(conversationContext)) return conversationContext;
+  if (Array.isArray(conversationContext?.history)) return conversationContext.history;
+  return [];
+}
+
+function getLastTurnContext(conversationContext) {
+  if (conversationContext?.lastTurn) return conversationContext.lastTurn;
+  if (conversationContext && !Array.isArray(conversationContext) && conversationContext.lastUserMessage) {
+    return conversationContext;
+  }
+  const history = coerceConversationHistory(conversationContext);
+  const last = history[history.length - 1];
+  if (!last) return null;
+  return {
+    lastUserMessage: last.user || "",
+    lastAiAction: last.action || null,
+    lastAiResponse: last.ai || "",
+  };
+}
+
+function buildGeminiDecisionPrompt(userQuery, liveContext, conversationContext) {
+  const history = coerceConversationHistory(conversationContext)
+    .slice(-12)
+    .map((turn) => ({
+      user: turn.user || "",
+      assistant: turn.ai || "",
+      action: turn.action || null,
+      timestamp: turn.timestamp || null,
+    }));
+
+  const summaryContext = {
+    counts: {
+      students: liveContext?.students?.length || 0,
+      faculty: liveContext?.faculty?.length || 0,
+      courses: liveContext?.courses?.length || 0,
+    },
+    students: (liveContext?.students || []).slice(0, 40),
+    faculty: (liveContext?.faculty || []).slice(0, 40),
+    courses: (liveContext?.courses || []).slice(0, 40),
+  };
+
+  return [
+    "CONVERSATION_HISTORY:",
+    JSON.stringify(history),
+    "LIVE_CONTEXT:",
+    JSON.stringify(summaryContext),
+    "LATEST_USER_MESSAGE:",
+    JSON.stringify(userQuery),
+  ].join("\n");
+}
+
+function isReadIntent(text) {
+  const q = String(text || "").toLowerCase();
+  return /\b(view|show|list|get|display|check|see|what|which|my schedule|timetable|all records?)\b/.test(q);
+}
+
+function findReadActionFallback(allowedActions) {
+  const allowed = allowedActions || [];
+  const preferred = [
+    "view_schedule",
+    "view_my_timetable",
+    "view_exam_schedule",
+    "list_exams",
+    "view_marks",
+    "view_my_marks",
+    "list_students",
+    "list_courses",
+    "list_faculty",
+    "list_attendance",
+  ];
+  return preferred.find((a) => allowed.includes(a)) || allowed.find((a) => a.startsWith("view_") || a.startsWith("list_")) || null;
+}
+
+function resolveGeminiDecision(parsed, userQuery, allowedActions) {
+  if (!parsed || typeof parsed !== "object") return null;
+
+  const requestedAction = String(parsed.action || "").trim().toLowerCase();
+  const message = String(parsed.message || "").trim();
+  const data = parsed.data && typeof parsed.data === "object" ? parsed.data : {};
+
+  if (!requestedAction || requestedAction === "clarify") {
+    return {
+      action: null,
+      response: message || "Please share a bit more detail so I can continue.",
+    };
+  }
+
+  const normalized = normalizeAction(requestedAction, allowedActions);
+  if (!normalized) return null;
+
+  // Safety guard: if user asked to view/list but model picked create-like action, force a read action.
+  if (isReadIntent(userQuery) && /^(create_|add_|schedule_exam$|record_attendance$|enter_marks$)/.test(normalized)) {
+    const readAction = findReadActionFallback(allowedActions);
+    if (readAction) {
+      return {
+        action: { action: readAction, data: {} },
+        response: message || buildConfirmationMessage({ action: readAction, data: {} }),
+      };
+    }
+  }
+
+  return {
+    action: { action: normalized, data },
+    response: message || buildConfirmationMessage({ action: normalized, data }),
+  };
 }
 
 /**
@@ -226,11 +346,13 @@ Remember: respond ONLY with a JSON object, nothing else.`;
  * Falls back to enhanced mock NLP if API unavailable.
  * @param {number} agentId - The agent ID (1-12) for context-aware responses
  */
-async function processQuery(systemPrompt, userQuery, apiKey, allowedActions, liveContext, agentId) {
+async function processQuery(systemPrompt, userQuery, apiKey, allowedActions, liveContext, agentId, conversationContext = null) {
   const smartPrompt = buildGeminiSystemPrompt(allowedActions, liveContext);
+  const decisionPrompt = buildGeminiDecisionPrompt(userQuery, liveContext, conversationContext);
+  const lastTurnContext = getLastTurnContext(conversationContext);
 
   if (!apiKey || apiKey === "your-gemini-api-key-here") {
-    return generateMockResponse(userQuery, allowedActions, liveContext, agentId);
+    return generateMockResponse(userQuery, allowedActions, liveContext, agentId, lastTurnContext);
   }
 
   try {
@@ -243,7 +365,7 @@ async function processQuery(systemPrompt, userQuery, apiKey, allowedActions, liv
         contents: [
           {
             role: "user",
-            parts: [{ text: userQuery }],
+            parts: [{ text: decisionPrompt }],
           },
         ],
         generationConfig: {
@@ -258,25 +380,15 @@ async function processQuery(systemPrompt, userQuery, apiKey, allowedActions, liv
     console.log("[Gemini raw]:", aiMessage);
 
     const parsed = extractJsonAction(aiMessage);
-
-    if (parsed && parsed.action) {
-      // Normalize the action if Gemini returned a non-standard name
-      const normalized = normalizeAction(parsed.action, allowedActions);
-      if (normalized) {
-        parsed.action = normalized;
-        return {
-          action: parsed,
-          response: buildConfirmationMessage(parsed, liveContext),
-        };
-      }
-    }
+    const resolved = resolveGeminiDecision(parsed, userQuery, allowedActions);
+    if (resolved) return resolved;
 
     // Parsed but no valid action → fall back
-    return generateMockResponse(userQuery, allowedActions, liveContext, agentId);
+    return generateMockResponse(userQuery, allowedActions, liveContext, agentId, lastTurnContext);
 
   } catch (error) {
     console.error("Gemini API Error:", error.response?.data || error.message);
-    return generateMockResponse(userQuery, allowedActions, liveContext, agentId);
+    return generateMockResponse(userQuery, allowedActions, liveContext, agentId, lastTurnContext);
   }
 }
 
@@ -648,6 +760,75 @@ function parseNaturalDate(query) {
   return null;
 }
 
+function normalizeUserInputText(input) {
+  const typoMap = {
+    marms: "marks",
+    maks: "marks",
+    marsk: "marks",
+    scheduel: "schedule",
+    shedule: "schedule",
+    timetabel: "timetable",
+    exma: "exam",
+    viwe: "view",
+    lsit: "list",
+    shwo: "show",
+    upadte: "update",
+    creat: "create",
+    delet: "delete",
+    studnet: "student",
+    coures: "course",
+  };
+
+  return String(input || "").replace(/\b\w+\b/gi, (word) => {
+    const key = word.toLowerCase();
+    if (!typoMap[key]) return word;
+    const fixed = typoMap[key];
+    return word[0] === word[0]?.toUpperCase()
+      ? fixed.charAt(0).toUpperCase() + fixed.slice(1)
+      : fixed;
+  });
+}
+
+function parseStudentCreateDetails(query) {
+  const lower = query.toLowerCase();
+
+  const deptMatch = query.match(/\b(?:dept|department)\s*[:=-]?\s*([A-Za-z]+)/i) ||
+                    query.match(/\b(CSE|IT|ECE|ME|MECH|CIVIL|MBA|MCA)\b/i);
+  const yearMatch = query.match(/\b(20\d{2})\b/) || query.match(/\b(?:year|batch)\s*[:=-]?\s*(\d{1,4})\b/i);
+  const emailMatch = query.match(/[\w.-]+@[\w.-]+\.\w+/);
+  const phoneMatch = query.match(/\b\d{10}\b/);
+
+  let name = null;
+  const keyedName = query.match(/\bname\s*[:=-]?\s*([A-Za-z][A-Za-z\s'.-]+?)(?=\s+(?:dept|department|year|batch|email|phone)\b|$)/i);
+  if (keyedName) {
+    name = keyedName[1].trim();
+  } else {
+    const cleaned = query
+      .replace(/\b(create|add|enroll|enrol|register|student|new|name|dept|department|year|batch|email|phone|in|to)\b/gi, " ")
+      .replace(/[,:;=]/g, " ")
+      .replace(/\b\d{4}\b/g, " ")
+      .replace(/[\w.-]+@[\w.-]+\.\w+/g, " ")
+      .replace(/\b\d{10}\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (cleaned) name = cleaned;
+  }
+
+  if (name) {
+    name = name.replace(/^name\s+/i, "").trim();
+  }
+
+  return {
+    name,
+    department: deptMatch ? String(deptMatch[1]).toUpperCase() : null,
+    year: yearMatch ? parseInt(yearMatch[1], 10) : null,
+    email: emailMatch ? emailMatch[0] : null,
+    phone: phoneMatch ? phoneMatch[0] : null,
+    hasEnoughCoreFields: !!(name && deptMatch),
+    asksCreate: /\b(create|add|enroll|enrol|register|new student)\b/.test(lower),
+  };
+}
+
 function detectName(tokens, existingNames) {
   if (existingNames && existingNames.length) {
     const q = tokens.join(" ").toLowerCase();
@@ -693,9 +874,10 @@ function bareDeleteClarification(allowedActions) {
 // MAIN MOCK NLP FUNCTION — The heart of the NLP engine
 // ═════════════════════════════════════════════════════════════════
 
-function generateMockResponse(query, allowedActions, liveContext, agentId) {
-  const q      = query.toLowerCase().trim();
-  const tokens = query.trim().split(/\s+/);
+function generateMockResponse(query, allowedActions, liveContext, agentId, conversationContext = null) {
+  const normalizedQuery = normalizeUserInputText(query);
+  const q      = normalizedQuery.toLowerCase().trim();
+  const tokens = normalizedQuery.trim().split(/\s+/);
   const allowed = allowedActions || [];
   const info   = AGENT_INFO[agentId] || { name: "Assistant", emoji: "🤖", capabilities: [] };
 
@@ -728,12 +910,29 @@ function generateMockResponse(query, allowedActions, liveContext, agentId) {
     return { action: null, response: redirectMsg };
   }
 
+  // Common list intents like "list all records" should always return records for the current agent domain.
+  if (/\b(list|show|view|display|get)\b/.test(q) && /\b(all|records?)\b/.test(q)) {
+    if (allowed.includes("view_marks")) {
+      return { action: { action: "view_marks", data: {} }, response: "Here are all marks records. 📊" };
+    }
+    if (allowed.includes("list_students")) {
+      return { action: { action: "list_students", data: {} }, response: "Here are all student records. 👥" };
+    }
+    if (allowed.includes("view_schedule")) {
+      return { action: { action: "view_schedule", data: {} }, response: "Here is your teaching schedule. 📅" };
+    }
+    if (allowed.includes("list_exams")) {
+      return { action: { action: "list_exams", data: {} }, response: "Here are all scheduled exams. 📝" };
+    }
+  }
+
   // ─── 3. INTENT DETECTION ────────────────────────────────────
   const isDelete   = DELETE_WORDS.some(w => q.includes(w));
   const isCreate   = CREATE_WORDS.some(w => q.includes(w));
   const isUpdate   = UPDATE_WORDS.some(w => q.includes(w));
   const isAssign   = ASSIGN_WORDS.some(w => q.includes(w));
   const isSchedule = SCHEDULE_WORDS.some(w => q.includes(w));
+  const isScheduleCreateIntent = /\b(schedule\s+exam|add\s+exam|create\s+exam|book\s+exam|plan\s+exam|new\s+exam)\b/.test(q);
   const isReport   = REPORT_WORDS.some(w => q.includes(w));
   const isWorkload = WORKLOAD_WORDS.some(w => q.includes(w));
   const isAttend   = ATTEND_WORDS.some(w => q.includes(w));
@@ -742,6 +941,20 @@ function generateMockResponse(query, allowedActions, liveContext, agentId) {
   const isCourseWord  = q.includes("course") || q.includes("subject") || q.includes("class");
   const isExamWord    = q.includes("exam") || q.includes("test") || q.includes("quiz");
   const wantsAll      = q.includes(" all ");
+  const isProfileUpdateAgent = allowed.includes("update_my_profile") || allowed.includes("update_my_faculty_profile");
+
+  // Follow-up context: user sends only a name after asking to update student.
+  const maybeOnlyName = /^[A-Za-z][A-Za-z\s'.-]{1,40}$/.test(normalizedQuery.trim());
+  const lastMsg = (conversationContext?.lastUserMessage || "").toLowerCase();
+  if (maybeOnlyName && allowed.includes("update_student") && /\b(update|edit|change|modify)\b/.test(lastMsg) && lastMsg.includes("student")) {
+    return {
+      action: null,
+      response:
+        `Got it — student **${normalizedQuery.trim()}**. What would you like to update?\n` +
+        "• Department\n• Year\n• GPA\n• Email\n• Phone\n" +
+        "Example: update student " + normalizedQuery.trim() + " email to student@university.edu",
+    };
+  }
 
   const dept = detectDept(tokens);
   const studentNames = liveContext?.students?.map(s => s.name) || [];
@@ -753,6 +966,8 @@ function generateMockResponse(query, allowedActions, liveContext, agentId) {
 
   const phoneRaw = query.match(/\b(\d{10})\b/) || query.match(/(?:phone|mobile|number)[:\s#]*(\d+)/i);
   const phone = phoneRaw ? phoneRaw[1] : undefined;
+  const emailMatch = query.match(/[\w.-]+@[\w.-]+\.\w+/);
+  const email = emailMatch ? emailMatch[0] : undefined;
 
   const creditsMatch = query.match(/(\d+)\s*credits?/i) || query.match(/credits?\s+to\s+(\d+)/i) || query.match(/credits?\s*[:=]\s*(\d+)/i);
   const credits = creditsMatch ? parseInt(creditsMatch[1]) : undefined;
@@ -766,6 +981,47 @@ function generateMockResponse(query, allowedActions, liveContext, agentId) {
      q.includes("year") || q.includes("number") || q.includes("address") || q.includes("section") ||
      q.includes("dept") || q.includes("department") || q.includes("designation") || q.includes("salary") ||
      q.includes("credit") || q.includes("credits"));
+
+  // Profile update intents should work even with short prompts like "update" or "update phone number".
+  if (isProfileUpdateAgent) {
+    const asksProfileChange = isUpdate || q === "update" || q.includes("update my profile") || q.includes("phone") || q.includes("email") || q.includes("contact");
+    if (asksProfileChange) {
+      if (phone || email) {
+        if (allowed.includes("update_my_profile")) {
+          return {
+            action: {
+              action: "update_my_profile",
+              data: {
+                ...(phone ? { phone } : {}),
+                ...(email ? { email } : {}),
+              },
+            },
+            response: "Updating your profile. ✏️",
+          };
+        }
+        if (allowed.includes("update_my_faculty_profile")) {
+          return {
+            action: {
+              action: "update_my_faculty_profile",
+              data: {
+                ...(phone ? { phone } : {}),
+                ...(email ? { email } : {}),
+              },
+            },
+            response: "Updating your faculty profile. ✏️",
+          };
+        }
+      }
+
+      return {
+        action: null,
+        response:
+          "Sure, I can update that. Please share the new value in one line, for example:\n" +
+          "• update my phone to 9876543210\n" +
+          "• update my email to rahul.new@university.edu",
+      };
+    }
+  }
 
   // ─── 4. SINGLE-WORD / SHORT QUERY MATCHING ─────────────────
   // Handle bare keywords: "gpa", "result", "courses", "attendance", etc.
@@ -831,7 +1087,7 @@ function generateMockResponse(query, allowedActions, liveContext, agentId) {
   }
 
   // Timetable / Schedule
-  if (q.match(/\b(timetable|time\s*table|schedule|class\s*timing|period|today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/) && !isSchedule && !isCreate) {
+  if (q.match(/\b(timetable|time\s*table|schedule|class\s*timing|period|today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/) && !isScheduleCreateIntent) {
     const days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
     let dayVal = null;
     for (const d of days) { if (q.includes(d)) { dayVal = d.charAt(0).toUpperCase() + d.slice(1); break; } }
@@ -999,10 +1255,20 @@ function generateMockResponse(query, allowedActions, liveContext, agentId) {
     }
     if ((isCreate || q.includes("enter")) && allowed.includes("enter_marks")) {
       const name = detectName(tokens.filter(t => !["enter","add","create","marks","grade","score","of","for","in"].includes(t.toLowerCase())), studentNames);
-      const courseCodeMatch = query.match(/\b([A-Z]{2,4}\d{3,4})\b/);
+      const courseCodeMatch = normalizedQuery.match(/\b([A-Z]{2,4}\d{3,4})\b/);
       const type = q.includes("midterm") ? "midterm" : q.includes("final") ? "final" : "midterm";
-      const marksMatch = query.match(/(\d+)\s*(?:marks?|out|\/)/i) || query.match(/\b(\d{1,3})\s*$/);
-      const maxMarksMatch = query.match(/(?:out of|\/)\s*(\d+)/i);
+      const marksMatch = normalizedQuery.match(/(\d+)\s*(?:marks?|out|\/)/i) || normalizedQuery.match(/\b(\d{1,3})\s*$/);
+      const maxMarksMatch = normalizedQuery.match(/(?:out of|\/)\s*(\d+)/i);
+
+      if (!name || !marksMatch) {
+        return {
+          action: null,
+          response:
+            "To enter marks, please provide student name, subject/course, and marks.\n" +
+            "Example: enter marks for Priya CS301 midterm 85/100",
+        };
+      }
+
       return { action: { action: "enter_marks", data: { studentName: name || "", ...(courseCodeMatch ? { courseCode: courseCodeMatch[1] } : {}), type, ...(marksMatch ? { marks: parseInt(marksMatch[1]) } : {}), maxMarks: maxMarksMatch ? parseInt(maxMarksMatch[1]) : 100 } }, response: `Entering marks for "${name}". ✍️` };
     }
     if (allowed.includes("view_marks")) {
@@ -1051,15 +1317,24 @@ function generateMockResponse(query, allowedActions, liveContext, agentId) {
   }
 
   // Exam scheduling
-  if ((isExamWord || isSchedule) && (allowed.includes("schedule_exam") || allowed.includes("list_exams"))) {
-    if (!isSchedule && !isCreate && !isDelete && allowed.includes("list_exams")) {
+  if ((isExamWord || isSchedule || isScheduleCreateIntent) && (allowed.includes("schedule_exam") || allowed.includes("list_exams"))) {
+    if (!isScheduleCreateIntent && !isCreate && !isDelete && allowed.includes("list_exams")) {
       return { action: { action: "list_exams", data: {} }, response: "Here are the upcoming exams. 📋" };
     }
-    if (allowed.includes("schedule_exam")) {
-      const dateVal   = parseNaturalDate(q) || "TBD";
+    if (allowed.includes("schedule_exam") && (isScheduleCreateIntent || (isExamWord && isCreate))) {
+      const dateVal   = parseNaturalDate(q);
       const typeVal   = q.includes("final") ? "final" : q.includes("quiz") ? "quiz" : "midterm";
-      const forMatch  = query.match(/(?:for|of)\s+([A-Za-z][^\d,]+?)(?:\s+on|\s+\d|\s*$)/i);
-      const courseVal = forMatch ? forMatch[1].trim() : detectName(tokens.filter(t => !["schedule","exam","on","for","of","date"].includes(t.toLowerCase())), courseNames) || "Unknown";
+      const forMatch  = normalizedQuery.match(/(?:for|of)\s+([A-Za-z][^\d,]+?)(?:\s+on|\s+\d|\s*$)/i);
+      const courseVal = forMatch ? forMatch[1].trim() : detectName(tokens.filter(t => !["schedule","exam","on","for","of","date"].includes(t.toLowerCase())), courseNames);
+
+      if (!courseVal || !dateVal) {
+        return {
+          action: null,
+          response:
+            "Sure, I can schedule an exam. Please share: subject/course, exam date (YYYY-MM-DD), and type (midterm/final/quiz).\n" +
+            "Example: schedule exam Data Structures on 2026-04-15 final",
+        };
+      }
       return { action: { action: "schedule_exam", data: { course: courseVal, date: dateVal, type: typeVal } }, response: `Scheduling ${typeVal} exam for "${courseVal}" on ${dateVal}. 📝` };
     }
   }
@@ -1137,6 +1412,12 @@ function generateMockResponse(query, allowedActions, liveContext, agentId) {
 
   if (isFieldUpdate && allowed.includes("update_student")) {
     const name = detectName(tokens, studentNames);
+    if (!name) {
+      return {
+        action: null,
+        response: "Which student would you like to update? Please provide the student name first.",
+      };
+    }
     const updateData = { name: name || "" };
     if (dept) updateData.department = dept;
     if (phone) updateData.phone = phone;
@@ -1146,13 +1427,40 @@ function generateMockResponse(query, allowedActions, liveContext, agentId) {
   }
 
   if (isCreate && allowed.includes("create_student")) {
-    const name = detectName(tokens.filter(t => !["create","add","enroll","register","student","new"].includes(t.toLowerCase())), studentNames) || detectName(tokens, []) || "New Student";
-    const emailMatch = query.match(/[\w.-]+@[\w.-]+\.\w+/);
-    return { action: { action: "create_student", data: { name, department: dept || "CSE", year: year || new Date().getFullYear(), gpa: gpa || 0, ...(emailMatch ? { email: emailMatch[0] } : {}), ...(phone ? { phone } : {}) } }, response: `Enrolling student "${name}" in ${dept || "CSE"}. ➕` };
+    const parsed = parseStudentCreateDetails(normalizedQuery);
+    if (!parsed.hasEnoughCoreFields) {
+      return {
+        action: null,
+        response:
+          "Sure! To enroll a new student, please provide at least full name and department.\n" +
+          "Example: create student name Kavin V department CSE year 2024",
+      };
+    }
+
+    return {
+      action: {
+        action: "create_student",
+        data: {
+          name: parsed.name,
+          department: parsed.department || dept || "CSE",
+          year: parsed.year || year || new Date().getFullYear(),
+          gpa: gpa || 0,
+          ...(parsed.email ? { email: parsed.email } : {}),
+          ...(parsed.phone ? { phone: parsed.phone } : {}),
+        },
+      },
+      response: `Enrolling student "${parsed.name}" in ${parsed.department || dept || "CSE"}. ➕`,
+    };
   }
 
   if (isUpdate && allowed.includes("update_student")) {
     const name = detectName(tokens, studentNames);
+    if (!name) {
+      return {
+        action: null,
+        response: "Which student would you like to update? Please provide their name, for example: update student Kavin V",
+      };
+    }
     const updateData = { name: name || "" };
     if (dept) updateData.department = dept;
     if (phone) updateData.phone = phone;

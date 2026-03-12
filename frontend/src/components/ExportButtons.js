@@ -4,18 +4,26 @@ import { exportPDF, exportExcel } from "../services/api";
 export default function ExportButtons({ title, headers, rows }) {
   const [exporting, setExporting] = useState(null);
 
+  function getFileNameFromDisposition(disposition, fallback) {
+    if (!disposition) return fallback;
+    const match = disposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
+    const raw = match ? (match[1] || match[2]) : null;
+    return raw ? decodeURIComponent(raw) : fallback;
+  }
+
   async function handleExport(type) {
     setExporting(type);
     try {
       const fn = type === "pdf" ? exportPDF : exportExcel;
       const res = await fn({ title, headers, rows });
-      const blob = new Blob([res.data], {
-        type: type === "pdf" ? "application/pdf" : "text/csv",
-      });
+      const contentType = res.headers?.["content-type"] || (type === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      const fallbackName = `${title.replace(/\s+/g, "_")}.${type === "pdf" ? "pdf" : "xlsx"}`;
+      const fileName = getFileNameFromDisposition(res.headers?.["content-disposition"], fallbackName);
+      const blob = new Blob([res.data], { type: contentType });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${title.replace(/\s+/g, "_")}.${type === "pdf" ? "pdf" : "xlsx"}`;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

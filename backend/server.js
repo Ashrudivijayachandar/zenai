@@ -15,6 +15,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const http = require("http");
 
 // Route imports
 const agentRoutes     = require("./routes/agentRoutes");
@@ -28,6 +29,7 @@ const exportRoutes    = require("./routes/exportRoutes");
 
 // Alert scheduler
 const { startAlertScheduler } = require("./services/alertService");
+const { initializeDataStore } = require("./services/dataService");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -62,14 +64,41 @@ app.get("/api/health", (req, res) => {
 });
 
 // ---- Start Server ----
-app.listen(PORT, () => {
-  // Start the proactive alert scheduler (checks every 30s)
-  startAlertScheduler(30000);
+async function startServer() {
+  try {
+    await initializeDataStore({ importFromFiles: true });
 
-  console.log(`
+    const maxPortAttempts = 10;
+    const strictPort = String(process.env.STRICT_PORT || "").toLowerCase() === "true";
+
+    function listenWithRetry(port, attempt = 0) {
+      const server = http.createServer(app);
+
+      server.on("error", (err) => {
+        if (err && err.code === "EADDRINUSE") {
+          if (strictPort || attempt >= maxPortAttempts) {
+            console.error(`Port ${port} is already in use. Set PORT to a free port (or set STRICT_PORT=false to auto-retry).`);
+            process.exit(1);
+          }
+
+          const nextPort = port + 1;
+          console.warn(`Port ${port} is in use; retrying on ${nextPort}...`);
+          setTimeout(() => listenWithRetry(nextPort, attempt + 1), 250);
+          return;
+        }
+
+        console.error("Server failed to start:", err);
+        process.exit(1);
+      });
+
+      server.listen(port, () => {
+        // Start the proactive alert scheduler (checks every 30s)
+        startAlertScheduler(30000);
+
+        console.log(`
 ╔══════════════════════════════════════════════════════════╗
 ║   ZENAI — AI Agent Platform for University Management   ║
-║   Server running on http://localhost:${PORT}               ║
+║   Server running on http://localhost:${port}               ║
 ║                                                          ║
 ║   API Endpoints:                                         ║
 ║     GET    /api/health               Health check         ║
@@ -85,4 +114,14 @@ app.listen(PORT, () => {
 ║     POST   /api/export/excel         Export Excel         ║
 ╚══════════════════════════════════════════════════════════╝
   `);
-});
+      });
+    }
+
+    listenWithRetry(Number(PORT));
+  } catch (err) {
+    console.error("Failed to initialize data store:", err.message);
+    process.exit(1);
+  }
+}
+
+startServer();
