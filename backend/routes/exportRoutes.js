@@ -94,7 +94,7 @@ router.post("/excel", authenticateToken, (req, res) => {
   const bodyRows = normalizeRows(headers, rows);
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "ZenAi";
+  workbook.creator = "UniAgent";
   workbook.created = new Date();
 
   const ws = workbook.addWorksheet("Report", {

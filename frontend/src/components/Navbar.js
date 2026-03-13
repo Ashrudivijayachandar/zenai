@@ -17,7 +17,7 @@ const PAGE_TITLES = {
 
 function getTitleForPath(pathname) {
   if (pathname.startsWith("/chat/")) return "Chat";
-  return PAGE_TITLES[pathname] || "ZENAI";
+  return PAGE_TITLES[pathname] || "UniAgent";
 }
 
 export default function Navbar({ onToggleSidebar }) {

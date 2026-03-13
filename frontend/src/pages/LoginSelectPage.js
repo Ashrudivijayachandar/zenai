@@ -9,8 +9,8 @@ export default function LoginSelectPage() {
       <div className="login-card-wide">
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-          <div className="login-logo-mark">ZN</div>
-          <h1 className="login-logo-text">ZEN<span>AI</span></h1>
+          <div className="login-logo-mark">UA</div>
+          <h1 className="login-logo-text">Uni<span>Agent</span></h1>
           <p className="login-subtitle">University AI Agent Platform</p>
           <p style={{ color: "var(--color-text-3)", fontSize: "0.875rem", marginTop: "0.5rem" }}>
             Please select your role to continue
@@ -48,7 +48,7 @@ export default function LoginSelectPage() {
         </div>
 
         <p className="login-footer-text">
-          ZENAI · University Portal · v1.0
+          UniAgent · University Portal · v1.0
         </p>
       </div>
     </div>

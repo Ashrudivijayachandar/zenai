@@ -1,5 +1,5 @@
 // ============================================================
-// EXPRESS SERVER — Entry point for the ZENAI backend
+// EXPRESS SERVER — Entry point for the UniAgent backend
 //
 // Architecture:
 //   Client → Express Routes → Controllers → AI Service → Action Router → JSON Data
@@ -58,7 +58,7 @@ app.use("/api/export",    exportRoutes);
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
-    platform: "ZENAI — AI Agent Platform for University Management",
+    platform: "UniAgent — AI Agent Platform for University Management",
     timestamp: new Date().toISOString(),
   });
 });
@@ -97,7 +97,7 @@ async function startServer() {
 
         console.log(`
 ╔══════════════════════════════════════════════════════════╗
-║   ZENAI — AI Agent Platform for University Management   ║
+║  UniAgent — AI Agent Platform for University Management  ║
 ║   Server running on http://localhost:${port}               ║
 ║                                                          ║
 ║   API Endpoints:                                         ║

@@ -376,6 +376,11 @@ function formatResult(data) {
 
 function getSuggestions(domain) {
   const m = {
+    students:            ["List students in CSE", "Create student Rahul in CSE 2024", "Update Rahul GPA to 8.5", "Delete Rahul from CSE"],
+    faculty:             ["List faculty in CSE", "Add faculty Dr Meena in ECE", "Assign Data Structures to Prof Kumar", "Generate workload"],
+    courses:             ["List courses in CSE", "Create course AI Fundamentals CS401 semester 7 CSE 4 credits", "Update course CS201 credits to 4", "Delete course Data Structures"],
+    attendance:          ["Record attendance Rahul present for CS201", "List attendance for Rahul", "Attendance report below 75", "Show attendance on 2026-03-13"],
+    exams:               ["List exams", "Schedule exam Data Structures 2026-04-15 midterm"],
     academic_advisor:    ["View my courses", "What is my GPA?", "Details for course CS201"],
     attendance_tracker:  ["Show my attendance", "Attendance report"],
     results___grades:    ["View my marks", "Show my results", "Marks above 85"],
@@ -383,7 +388,7 @@ function getSuggestions(domain) {
     profile_manager:     ["View my profile", "Update my email to rahul@test.com"],
     notice_board:        ["Show all notices", "Latest announcements"],
     class_manager:       ["List all students", "List all courses", "Create student Amit"],
-    attendance_manager:  ["List attendance records", "Mark Rahul present for CS201", "Show students below 75% attendance"],
+    attendance_manager:  ["List attendance records", "Mark Rahul present for CS201", "Show students below 75% attendance", "Attendance report 75"],
     marks_entry:         ["View marks for CS201", "Enter marks for Rahul", "Marks analytics"],
     schedule_manager:    ["View schedule", "Schedule exam for Data Structures on April 20", "List all exams"],
     analytics_dashboard: ["Generate report", "Generate workload", "Attendance report", "Marks analytics"],

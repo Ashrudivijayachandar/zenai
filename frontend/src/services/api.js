@@ -27,7 +27,12 @@ export const getAgents = (role) =>
 
 export const getAgent = (id) => api.get(`/agents/${id}`);
 
-export const createAgent = (purpose) => api.post("/agents", { purpose });
+export const createAgent = (payload) => {
+  if (typeof payload === "string") {
+    return api.post("/agents", { purpose: payload });
+  }
+  return api.post("/agents", payload);
+};
 
 export const deleteAgent = (id) => api.delete(`/agents/${id}`);
 

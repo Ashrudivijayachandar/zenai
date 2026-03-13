@@ -1,126 +1,82 @@
-// ============================================================
-// ACTION ROUTER — Executes structured JSON actions on data
-// Supports both legacy faculty CRUD and new role-based actions
-// ============================================================
-
 const { readData, writeData } = require("./dataService");
 
-/**
- * Execute a structured action against the data layer.
- * @param {string} action - The action name
- * @param {object} data   - The action payload
- * @param {object} currentUser - Logged-in user (from JWT): { id, name, email, role, department }
- * @returns {{ success: boolean, message: string, data: any }}
- */
-function executeAction(action, data, currentUser) {
+function nextId(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return 1;
+  return Math.max(...rows.map((r) => Number(r.id) || 0)) + 1;
+}
+
+function containsName(source, target) {
+  return String(source || "").toLowerCase().includes(String(target || "").toLowerCase());
+}
+
+function executeAction(action, data = {}, currentUser = null) {
   switch (action) {
-
-    // ===================== STUDENT "MY" ACTIONS (read-only) =====================
-
     case "view_my_courses": {
-      if (!currentUser) return { success: false, message: "Please log in to view your courses.", data: null };
+      if (!currentUser) return { success: false, message: "Please log in.", data: null };
       const enrollments = readData("enrollments.json");
-      const myCourses = enrollments.filter(e => e.studentName.toLowerCase().includes(currentUser.name.toLowerCase()));
-      if (myCourses.length === 0) return { success: true, message: "You have no course enrollments on record.", data: [] };
-      return { success: true, message: `You are enrolled in ${myCourses.length} course(s).`, data: myCourses };
+      const rows = enrollments.filter((e) => containsName(e.studentName, currentUser.name));
+      return { success: true, message: `Found ${rows.length} course(s).`, data: rows };
     }
 
     case "view_my_gpa": {
-      if (!currentUser) return { success: false, message: "Please log in to view your GPA.", data: null };
+      if (!currentUser) return { success: false, message: "Please log in.", data: null };
       const students = readData("students.json");
-      const me = students.find(s => s.name.toLowerCase() === currentUser.name.toLowerCase());
-      if (!me) return { success: false, message: "Your student record was not found.", data: null };
-      return { success: true, message: `Your current GPA is ${me.gpa}.`, data: { name: me.name, department: me.department, year: me.year, gpa: me.gpa } };
+      const me = students.find((s) => String(s.name || "").toLowerCase() === String(currentUser.name || "").toLowerCase());
+      if (!me) return { success: false, message: "Student profile not found.", data: null };
+      return { success: true, message: `Your current GPA is ${me.gpa}.`, data: me };
     }
 
     case "view_course_details": {
       const courses = readData("courses.json");
+      let row = null;
       if (data.courseCode) {
-        const course = courses.find(c => c.code.toLowerCase() === data.courseCode.toLowerCase());
-        if (!course) return { success: false, message: `Course "${data.courseCode}" not found.`, data: null };
-        return { success: true, message: `Details for ${course.name} (${course.code}).`, data: course };
+        row = courses.find((c) => String(c.code || "").toLowerCase() === String(data.courseCode).toLowerCase());
       }
-      if (data.name) {
-        const course = courses.find(c => c.name.toLowerCase().includes(data.name.toLowerCase()));
-        if (!course) return { success: false, message: `Course "${data.name}" not found.`, data: null };
-        return { success: true, message: `Details for ${course.name} (${course.code}).`, data: course };
+      if (!row && data.name) {
+        row = courses.find((c) => containsName(c.name, data.name));
       }
-      return { success: false, message: "Please specify a course name or code.", data: null };
+      if (!row) return { success: false, message: "Course not found.", data: null };
+      return { success: true, message: `Details for ${row.name}.`, data: row };
     }
 
     case "view_my_attendance": {
-      if (!currentUser) return { success: false, message: "Please log in to view your attendance.", data: null };
+      if (!currentUser) return { success: false, message: "Please log in.", data: null };
       const attendance = readData("attendance.json");
-      let myAttendance = attendance.filter(a => a.studentName.toLowerCase().includes(currentUser.name.toLowerCase()));
-      if (data.courseCode) {
-        myAttendance = myAttendance.filter(a => a.courseCode === data.courseCode);
-      }
-      if (data.date) {
-        myAttendance = myAttendance.filter(a => a.date === data.date);
-      }
-      const total = myAttendance.length;
-      const present = myAttendance.filter(a => a.status === "present").length;
-      const pct = total > 0 ? Math.round((present / total) * 100) : 100;
-      return {
-        success: true,
-        message: `Your attendance: ${present}/${total} (${pct}%).`,
-        data: { total, present, absent: total - present, percentage: pct, records: myAttendance },
-      };
+      let rows = attendance.filter((a) => containsName(a.studentName, currentUser.name));
+      if (data.courseCode) rows = rows.filter((a) => String(a.courseCode) === String(data.courseCode));
+      return { success: true, message: `Found ${rows.length} attendance record(s).`, data: rows };
     }
 
     case "view_my_attendance_report": {
       if (!currentUser) return { success: false, message: "Please log in.", data: null };
       const attendance = readData("attendance.json");
-      const enrollments = readData("enrollments.json");
-      const myEnrollments = enrollments.filter(e => e.studentName.toLowerCase().includes(currentUser.name.toLowerCase()));
-      const report = myEnrollments.map(en => {
-        const records = attendance.filter(a =>
-          a.studentName.toLowerCase().includes(currentUser.name.toLowerCase()) &&
-          a.courseCode === en.courseCode
-        );
-        const total = records.length;
-        const present = records.filter(a => a.status === "present").length;
-        const pct = total > 0 ? Math.round((present / total) * 100) : 100;
-        return { course: en.courseName, courseCode: en.courseCode, total, present, absent: total - present, percentage: pct, belowThreshold: pct < 75 };
-      });
-      const belowCount = report.filter(r => r.belowThreshold).length;
+      const rows = attendance.filter((a) => containsName(a.studentName, currentUser.name));
+      const total = rows.length;
+      const present = rows.filter((a) => String(a.status || "").toLowerCase() === "present").length;
+      const percentage = total > 0 ? Math.round((present / total) * 100) : 100;
       return {
         success: true,
-        message: belowCount > 0 ? `⚠️ You are below 75% attendance in ${belowCount} course(s).` : "Your attendance is above 75% in all courses.",
-        data: report,
+        message: `Attendance: ${present}/${total} (${percentage}%).`,
+        data: { total, present, absent: total - present, percentage, records: rows },
       };
     }
 
     case "view_my_marks": {
-      if (!currentUser) return { success: false, message: "Please log in to view your marks.", data: null };
+      if (!currentUser) return { success: false, message: "Please log in.", data: null };
       const marks = readData("marks.json");
-      console.log("actionRouter view_my_marks -> received data:", data);
-      let myMarks = marks.filter(m => m.studentName.toLowerCase().includes(currentUser.name.toLowerCase()));
-      if (data.courseCode) myMarks = myMarks.filter(m => m.courseCode === data.courseCode);
-      if (data.courseName) myMarks = myMarks.filter(m => m.courseName.toLowerCase().includes(data.courseName.toLowerCase()));
-      if (data.type) myMarks = myMarks.filter(m => m.type === data.type);
-      if (data.minMarks !== undefined) myMarks = myMarks.filter(m => m.marks >= parseFloat(data.minMarks));
-      if (data.maxMarks !== undefined) myMarks = myMarks.filter(m => m.marks <= parseFloat(data.maxMarks));
-      if (myMarks.length === 0) return { success: true, message: "No marks records found.", data: [] };
-      return { success: true, message: `Found ${myMarks.length} marks record(s).`, data: myMarks };
+      let rows = marks.filter((m) => containsName(m.studentName, currentUser.name));
+      if (data.courseCode) rows = rows.filter((m) => String(m.courseCode) === String(data.courseCode));
+      if (data.type) rows = rows.filter((m) => String(m.type || "").toLowerCase() === String(data.type).toLowerCase());
+      if (data.minMarks !== undefined) rows = rows.filter((m) => Number(m.marks) >= Number(data.minMarks));
+      if (data.maxMarks !== undefined) rows = rows.filter((m) => Number(m.marks) <= Number(data.maxMarks));
+      return { success: true, message: `Found ${rows.length} marks record(s).`, data: rows };
     }
 
     case "view_my_results": {
       if (!currentUser) return { success: false, message: "Please log in.", data: null };
       const marks = readData("marks.json");
-      const myMarks = marks.filter(m => m.studentName.toLowerCase().includes(currentUser.name.toLowerCase()));
-      // Group by course
-      const courses = {};
-      myMarks.forEach(m => {
-        if (!courses[m.courseCode]) courses[m.courseCode] = { courseName: m.courseName, courseCode: m.courseCode, exams: [] };
-        courses[m.courseCode].exams.push({ type: m.type, marks: m.marks, maxMarks: m.maxMarks, percentage: Math.round((m.marks / m.maxMarks) * 100) });
-      });
-      const summary = Object.values(courses).map(c => {
-        const totalMarks = c.exams.reduce((s, e) => s + e.marks, 0);
-        const totalMax = c.exams.reduce((s, e) => s + e.maxMarks, 0);
-        return { ...c, totalMarks, totalMax, overallPercentage: totalMax > 0 ? Math.round((totalMarks / totalMax) * 100) : 0 };
-      });
-      return { success: true, message: `Results for ${summary.length} course(s).`, data: summary };
+      const rows = marks.filter((m) => containsName(m.studentName, currentUser.name));
+      return { success: true, message: `Found ${rows.length} result record(s).`, data: rows };
     }
 
     case "view_my_timetable": {
@@ -128,29 +84,24 @@ function executeAction(action, data, currentUser) {
       const schedules = readData("schedules.json");
       const enrollments = readData("enrollments.json");
       const myCodes = enrollments
-        .filter(e => e.studentName.toLowerCase().includes(currentUser.name.toLowerCase()))
-        .map(e => e.courseCode);
-      let mySchedule = schedules.filter(s => myCodes.includes(s.courseCode));
-      if (data.day) mySchedule = mySchedule.filter(s => s.day.toLowerCase() === data.day.toLowerCase());
-      mySchedule.sort((a, b) => {
-        const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-        return days.indexOf(a.day) - days.indexOf(b.day) || a.time.localeCompare(b.time);
-      });
-      return { success: true, message: `Found ${mySchedule.length} class(es) in your timetable.`, data: mySchedule };
+        .filter((e) => containsName(e.studentName, currentUser.name))
+        .map((e) => String(e.courseCode));
+      let rows = schedules.filter((s) => myCodes.includes(String(s.courseCode)));
+      if (data.day) rows = rows.filter((s) => String(s.day || "").toLowerCase() === String(data.day).toLowerCase());
+      return { success: true, message: `Found ${rows.length} class(es).`, data: rows };
     }
 
     case "view_exam_schedule": {
-      const exams = readData("exams.json");
-      let filtered = exams;
-      if (data.type) filtered = filtered.filter(e => e.type === data.type);
-      if (data.course) filtered = filtered.filter(e => e.course.toLowerCase().includes(data.course.toLowerCase()));
-      return { success: true, message: filtered.length > 0 ? `Found ${filtered.length} exam(s).` : "No exams scheduled.", data: filtered };
+      let rows = readData("exams.json");
+      if (data.course) rows = rows.filter((e) => containsName(e.course, data.course));
+      if (data.type) rows = rows.filter((e) => String(e.type || "").toLowerCase() === String(data.type).toLowerCase());
+      return { success: true, message: `Found ${rows.length} exam(s).`, data: rows };
     }
 
     case "view_my_profile": {
       if (!currentUser) return { success: false, message: "Please log in.", data: null };
       const students = readData("students.json");
-      const me = students.find(s => s.name.toLowerCase() === currentUser.name.toLowerCase());
+      const me = students.find((s) => String(s.name || "").toLowerCase() === String(currentUser.name || "").toLowerCase());
       if (!me) return { success: false, message: "Profile not found.", data: null };
       return { success: true, message: `Profile for ${me.name}.`, data: me };
     }
@@ -158,46 +109,24 @@ function executeAction(action, data, currentUser) {
     case "update_my_profile": {
       if (!currentUser) return { success: false, message: "Please log in.", data: null };
       const students = readData("students.json");
-      const idx = students.findIndex(s => s.name.toLowerCase() === currentUser.name.toLowerCase());
+      const idx = students.findIndex((s) => String(s.name || "").toLowerCase() === String(currentUser.name || "").toLowerCase());
       if (idx === -1) return { success: false, message: "Profile not found.", data: null };
-      // Only allow phone and email updates
-      const updates = {};
-      if (data.phone) {
-        if (!/^\d{10}$/.test(data.phone)) return { success: false, message: "Phone must be exactly 10 digits.", data: null };
-        updates.phone = data.phone;
-      }
-      if (data.email) {
-        if (!data.email.includes("@")) return { success: false, message: "Invalid email address.", data: null };
-        updates.email = data.email;
-      }
-      if (Object.keys(updates).length === 0) {
-        return { success: false, message: "You can only update your phone and email. Specify what to change.", data: null };
-      }
-      students[idx] = { ...students[idx], ...updates };
+      students[idx] = { ...students[idx], ...(data.phone ? { phone: data.phone } : {}), ...(data.email ? { email: data.email } : {}) };
       writeData("students.json", students);
-      return { success: true, message: `Profile updated: ${Object.keys(updates).join(", ")} changed.`, data: students[idx] };
+      return { success: true, message: "Profile updated.", data: students[idx] };
     }
 
     case "view_notices": {
-      const notices = readData("notices.json");
-      let filtered = notices;
-      if (data.category) filtered = filtered.filter(n => n.category === data.category);
-      if (data.department) {
-        filtered = filtered.filter(n => n.department === "ALL" || n.department === data.department);
-      } else if (currentUser && currentUser.department) {
-        filtered = filtered.filter(n => n.department === "ALL" || n.department === currentUser.department);
-      }
-      if (data.priority) filtered = filtered.filter(n => n.priority === data.priority);
-      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-      return { success: true, message: `Found ${filtered.length} notice(s).`, data: filtered };
+      let rows = readData("notices.json");
+      if (data.category) rows = rows.filter((n) => String(n.category || "").toLowerCase() === String(data.category).toLowerCase());
+      if (data.priority) rows = rows.filter((n) => String(n.priority || "").toLowerCase() === String(data.priority).toLowerCase());
+      return { success: true, message: `Found ${rows.length} notice(s).`, data: rows };
     }
-
-    // ===================== FACULTY "MY" ACTIONS =====================
 
     case "view_my_faculty_profile": {
       if (!currentUser) return { success: false, message: "Please log in.", data: null };
       const faculty = readData("faculty.json");
-      const me = faculty.find(f => f.name.toLowerCase().includes(currentUser.name.toLowerCase()));
+      const me = faculty.find((f) => containsName(f.name, currentUser.name));
       if (!me) return { success: false, message: "Faculty profile not found.", data: null };
       return { success: true, message: `Profile for ${me.name}.`, data: me };
     }
@@ -205,454 +134,281 @@ function executeAction(action, data, currentUser) {
     case "update_my_faculty_profile": {
       if (!currentUser) return { success: false, message: "Please log in.", data: null };
       const faculty = readData("faculty.json");
-      const idx = faculty.findIndex(f => f.name.toLowerCase().includes(currentUser.name.toLowerCase()));
+      const idx = faculty.findIndex((f) => containsName(f.name, currentUser.name));
       if (idx === -1) return { success: false, message: "Faculty profile not found.", data: null };
-      const updates = {};
-      if (data.phone) {
-        if (!/^\d{10}$/.test(data.phone)) return { success: false, message: "Phone must be exactly 10 digits.", data: null };
-        updates.phone = data.phone;
-      }
-      if (data.email) {
-        if (!data.email.includes("@")) return { success: false, message: "Invalid email address.", data: null };
-        updates.email = data.email;
-      }
-      if (Object.keys(updates).length === 0) {
-        return { success: false, message: "You can only update your phone and email.", data: null };
-      }
-      faculty[idx] = { ...faculty[idx], ...updates };
+      faculty[idx] = { ...faculty[idx], ...(data.phone ? { phone: data.phone } : {}), ...(data.email ? { email: data.email } : {}) };
       writeData("faculty.json", faculty);
-      return { success: true, message: `Profile updated: ${Object.keys(updates).join(", ")} changed.`, data: faculty[idx] };
+      return { success: true, message: "Faculty profile updated.", data: faculty[idx] };
     }
 
     case "view_schedule": {
-      const schedules = readData("schedules.json");
-      let filtered = schedules;
-      if (currentUser) {
-        filtered = filtered.filter(s => s.faculty.toLowerCase().includes(currentUser.name.toLowerCase()));
-      }
-      if (data.day) filtered = filtered.filter(s => s.day.toLowerCase() === data.day.toLowerCase());
-      filtered.sort((a, b) => {
-        const days = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-        return days.indexOf(a.day) - days.indexOf(b.day) || a.time.localeCompare(b.time);
-      });
-      return { success: true, message: `Found ${filtered.length} scheduled class(es).`, data: filtered };
+      let rows = readData("schedules.json");
+      if (currentUser) rows = rows.filter((s) => containsName(s.faculty, currentUser.name));
+      if (data.day) rows = rows.filter((s) => String(s.day || "").toLowerCase() === String(data.day).toLowerCase());
+      return { success: true, message: `Found ${rows.length} schedule item(s).`, data: rows };
     }
-
-    // ===================== MARKS MANAGEMENT (Faculty) =====================
 
     case "enter_marks": {
       const marks = readData("marks.json");
-      const students = readData("students.json");
-      if (!data.studentName) return { success: false, message: "Please specify the student name.", data: null };
-      const student = students.find(s => s.name.toLowerCase().includes(data.studentName.toLowerCase()));
-      const newId = marks.length > 0 ? Math.max(...marks.map(m => m.id)) + 1 : 1;
-      const record = {
-        id: newId,
-        studentId: student ? student.id : null,
-        studentName: data.studentName,
+      const row = {
+        id: nextId(marks),
+        studentName: data.studentName || "Unknown",
         courseCode: data.courseCode || "GENERAL",
         courseName: data.courseName || data.courseCode || "Unknown",
         type: data.type || "midterm",
-        marks: data.marks || 0,
-        maxMarks: data.maxMarks || 100,
+        marks: Number(data.marks || 0),
+        maxMarks: Number(data.maxMarks || 100),
         date: data.date || new Date().toISOString().split("T")[0],
       };
-      marks.push(record);
+      marks.push(row);
       writeData("marks.json", marks);
-      return { success: true, message: `Marks entered: ${record.studentName} got ${record.marks}/${record.maxMarks} in ${record.courseName} (${record.type}).`, data: record };
+      return { success: true, message: `Marks entered for ${row.studentName}.`, data: row };
     }
 
     case "view_marks": {
-      const marks = readData("marks.json");
-      let filtered = marks;
-      if (data.studentName) filtered = filtered.filter(m => m.studentName.toLowerCase().includes(data.studentName.toLowerCase()));
-      if (data.courseCode) filtered = filtered.filter(m => m.courseCode === data.courseCode);
-      if (data.type) filtered = filtered.filter(m => m.type === data.type);
-      if (data.minMarks !== undefined) filtered = filtered.filter(m => m.marks >= parseFloat(data.minMarks));
-      if (data.maxMarks !== undefined) filtered = filtered.filter(m => m.marks <= parseFloat(data.maxMarks));
-      return { success: true, message: `Found ${filtered.length} marks record(s).`, data: filtered };
+      let rows = readData("marks.json");
+      if (data.studentName) rows = rows.filter((m) => containsName(m.studentName, data.studentName));
+      if (data.courseCode) rows = rows.filter((m) => String(m.courseCode) === String(data.courseCode));
+      if (data.type) rows = rows.filter((m) => String(m.type || "").toLowerCase() === String(data.type).toLowerCase());
+      if (data.minMarks !== undefined) rows = rows.filter((m) => Number(m.marks) >= Number(data.minMarks));
+      if (data.maxMarks !== undefined) rows = rows.filter((m) => Number(m.marks) <= Number(data.maxMarks));
+      return { success: true, message: `Found ${rows.length} mark record(s).`, data: rows };
     }
 
     case "update_marks": {
       const marks = readData("marks.json");
-      if (!data.studentName) return { success: false, message: "Please specify the student name.", data: null };
-      const idx = marks.findIndex(m =>
-        m.studentName.toLowerCase().includes(data.studentName.toLowerCase()) &&
-        (!data.courseCode || m.courseCode === data.courseCode) &&
-        (!data.type || m.type === data.type)
-      );
+      const idx = marks.findIndex((m) => containsName(m.studentName, data.studentName));
       if (idx === -1) return { success: false, message: "Marks record not found.", data: null };
-      if (data.marks !== undefined) marks[idx].marks = data.marks;
-      if (data.maxMarks !== undefined) marks[idx].maxMarks = data.maxMarks;
+      marks[idx] = { ...marks[idx], ...(data.marks !== undefined ? { marks: Number(data.marks) } : {}), ...(data.type ? { type: data.type } : {}) };
       writeData("marks.json", marks);
-      return { success: true, message: `Marks updated for ${marks[idx].studentName}: ${marks[idx].marks}/${marks[idx].maxMarks}.`, data: marks[idx] };
+      return { success: true, message: "Marks updated.", data: marks[idx] };
     }
 
     case "delete_marks": {
       const marks = readData("marks.json");
-      if (!data.studentName) return { success: false, message: "Please specify which marks record to delete (student name, course, or type).", data: null };
-      const candidates = marks.filter(m =>
-        m.studentName.toLowerCase().includes(data.studentName.toLowerCase()) &&
-        (!data.courseCode || m.courseCode === data.courseCode) &&
-        (!data.type || m.type === data.type)
-      );
-      if (candidates.length === 0) return { success: false, message: "Marks record not found.", data: null };
-      if (candidates.length > 1 && !data.courseCode && !data.type) {
-        return { success: false, message: `Multiple records found: ${candidates.map(m => `${m.courseName} (${m.type})`).join(", ")}. Specify course or type.`, data: candidates };
-      }
-      const toDelete = candidates[0];
-      const remaining = marks.filter(m => m.id !== toDelete.id);
+      const before = marks.length;
+      const remaining = marks.filter((m) => !containsName(m.studentName, data.studentName));
       writeData("marks.json", remaining);
-      return { success: true, message: `Marks record deleted: ${toDelete.studentName} - ${toDelete.courseName} (${toDelete.type}).`, data: remaining };
+      return { success: true, message: `Deleted ${before - remaining.length} mark record(s).`, data: null };
     }
 
     case "view_marks_analytics": {
       const marks = readData("marks.json");
-      const courses = {};
-      marks.forEach(m => {
-        const key = `${m.courseCode}-${m.type}`;
-        if (!courses[key]) courses[key] = { courseName: m.courseName, courseCode: m.courseCode, type: m.type, scores: [] };
-        courses[key].scores.push(m.marks);
-      });
-      const analytics = Object.values(courses).map(c => {
-        const avg = c.scores.reduce((s, v) => s + v, 0) / c.scores.length;
-        const max = Math.max(...c.scores);
-        const min = Math.min(...c.scores);
-        return { ...c, count: c.scores.length, average: Math.round(avg * 10) / 10, highest: max, lowest: min };
-      });
-      return { success: true, message: `Analytics for ${analytics.length} exam(s).`, data: analytics };
-    }
-
-    // ===================== STUDENT CRUD (Faculty) =====================
-
-    case "create_student": {
-      const students = readData("students.json");
-      const newId = students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1;
-      const newStudent = {
-        id: newId,
-        name: data.name || "Unknown",
-        department: data.department || "General",
-        year: data.year || new Date().getFullYear(),
-        gpa: data.gpa || 0,
-        email: data.email || `${(data.name || "student").toLowerCase().replace(/\s+/g, ".")}@university.edu`,
-        phone: data.phone || "",
-        section: data.section || "A",
-        enrolledAt: new Date().toISOString().split("T")[0],
-      };
-      students.push(newStudent);
-      writeData("students.json", students);
-      return { success: true, message: `Student "${newStudent.name}" enrolled successfully.`, data: newStudent };
+      if (marks.length === 0) return { success: true, message: "No marks data available.", data: { total: 0, average: 0 } };
+      const avg = marks.reduce((sum, m) => sum + Number(m.marks || 0), 0) / marks.length;
+      return { success: true, message: "Marks analytics generated.", data: { total: marks.length, average: Math.round(avg * 100) / 100 } };
     }
 
     case "list_students": {
+      let rows = readData("students.json");
+      if (data.department) rows = rows.filter((s) => String(s.department || "").toLowerCase() === String(data.department).toLowerCase());
+      if (data.year !== undefined) rows = rows.filter((s) => Number(s.year) === Number(data.year));
+      return { success: true, message: `Found ${rows.length} student(s).`, data: rows };
+    }
+
+    case "create_student": {
       const students = readData("students.json");
-      let filtered = students;
-      if (data.department) filtered = filtered.filter(s => s.department.toLowerCase() === data.department.toLowerCase());
-      if (data.year) filtered = filtered.filter(s => s.year === data.year);
-      if (data.section) filtered = filtered.filter(s => s.section.toLowerCase() === data.section.toLowerCase());
-      return { success: true, message: `Found ${filtered.length} student(s).`, data: filtered };
+      const row = {
+        id: nextId(students),
+        name: data.name,
+        department: data.department || "CSE",
+        year: Number(data.year || new Date().getFullYear()),
+        gpa: Number(data.gpa || 0),
+        email: data.email || "",
+      };
+      students.push(row);
+      writeData("students.json", students);
+      return { success: true, message: `Student ${row.name} enrolled successfully.`, data: row };
     }
 
     case "update_student": {
       const students = readData("students.json");
-      if (!data.id && (!data.name || !data.name.trim())) {
-        return { success: false, message: "Please specify which student to update (provide a name).", data: null };
-      }
-      let uCandidates = data.id
-        ? students.filter(s => s.id === data.id)
-        : students.filter(s => s.name.toLowerCase().includes(data.name.toLowerCase().trim()));
-      if (uCandidates.length > 1 && data.department) {
-        const narrow = uCandidates.filter(s => s.department.toLowerCase() === data.department.toLowerCase());
-        if (narrow.length > 0) uCandidates = narrow;
-      }
-      if (uCandidates.length === 0) return { success: false, message: "Student not found.", data: null };
-      if (uCandidates.length > 1) {
-        return { success: false, message: `Multiple students found: ${uCandidates.map(s => `${s.name} (${s.department})`).join(", ")}. Please specify the department.`, data: uCandidates };
-      }
-      const idx = students.findIndex(s => s.id === uCandidates[0].id);
-      const { name: _searchName, ...fieldsToUpdate } = data;
-      const updated = { ...students[idx], ...fieldsToUpdate, id: students[idx].id, name: students[idx].name };
-      students[idx] = updated;
+      const idx = students.findIndex((s) => containsName(s.name, data.name));
+      if (idx === -1) return { success: false, message: "Student not found.", data: null };
+      students[idx] = {
+        ...students[idx],
+        ...(data.department ? { department: data.department } : {}),
+        ...(data.year !== undefined ? { year: Number(data.year) } : {}),
+        ...(data.gpa !== undefined ? { gpa: Number(data.gpa) } : {}),
+      };
       writeData("students.json", students);
-      return { success: true, message: `Student "${updated.name}" updated successfully.`, data: updated };
+      return { success: true, message: `Student ${students[idx].name} updated.`, data: students[idx] };
     }
 
     case "delete_student": {
       const students = readData("students.json");
-      if (!data.id && (!data.name || !data.name.trim())) {
-        return { success: false, message: "Please specify which student to delete. Provide a name and optionally a department.", data: null };
-      }
-      let dCandidates = data.id
-        ? students.filter(s => s.id === data.id)
-        : students.filter(s => s.name.toLowerCase().includes(data.name.toLowerCase().trim()));
-      if (dCandidates.length > 1 && data.department) {
-        const narrow = dCandidates.filter(s => s.department.toLowerCase() === data.department.toLowerCase());
-        if (narrow.length > 0) dCandidates = narrow;
-      }
-      if (dCandidates.length === 0) return { success: false, message: "Student not found.", data: null };
-      if (dCandidates.length > 1) {
-        return { success: false, message: `Multiple students found: ${dCandidates.map(s => `${s.name} (${s.department})`).join(", ")}. Please specify the department.`, data: dCandidates };
-      }
-      const toDelete = dCandidates[0];
-      const remaining = students.filter(s => s.id !== toDelete.id);
+      const before = students.length;
+      const remaining = students.filter((s) => !containsName(s.name, data.name));
       writeData("students.json", remaining);
-      return { success: true, message: `Student "${toDelete.name}" (${toDelete.department}) removed. ${remaining.length} student(s) remaining.`, data: remaining };
-    }
-
-    // ===================== FACULTY ACTIONS =====================
-
-    case "add_faculty": {
-      const faculty = readData("faculty.json");
-      const newId = faculty.length > 0 ? Math.max(...faculty.map(f => f.id)) + 1 : 1;
-      const newFaculty = {
-        id: newId,
-        name: data.name || "Unknown",
-        department: data.department || "General",
-        subjects: data.subjects || [],
-        email: data.email || `${(data.name || "faculty").toLowerCase().replace(/\s+/g, ".")}@university.edu`,
-        designation: data.designation || "Lecturer",
-        experience: data.experience || 0,
-        phone: data.phone || "",
-      };
-      faculty.push(newFaculty);
-      writeData("faculty.json", faculty);
-      return { success: true, message: `Faculty "${newFaculty.name}" (${newFaculty.designation}) added to ${newFaculty.department}.`, data: newFaculty };
+      return { success: true, message: `Deleted ${before - remaining.length} student(s).`, data: null };
     }
 
     case "list_faculty": {
+      let rows = readData("faculty.json");
+      if (data.department) rows = rows.filter((f) => String(f.department || "").toLowerCase() === String(data.department).toLowerCase());
+      return { success: true, message: `Found ${rows.length} faculty member(s).`, data: rows };
+    }
+
+    case "add_faculty": {
       const faculty = readData("faculty.json");
-      let filtered = faculty;
-      if (data.department) filtered = filtered.filter(f => f.department.toLowerCase() === data.department.toLowerCase());
-      return { success: true, message: `Found ${filtered.length} faculty member(s).`, data: filtered };
+      const row = {
+        id: nextId(faculty),
+        name: data.name,
+        department: data.department || "General",
+        subjects: Array.isArray(data.subjects) ? data.subjects : [],
+        designation: data.designation || "Faculty",
+      };
+      faculty.push(row);
+      writeData("faculty.json", faculty);
+      return { success: true, message: `Faculty ${row.name} added.`, data: row };
     }
 
     case "delete_faculty": {
       const faculty = readData("faculty.json");
-      if (!data.id && (!data.name || !data.name.trim())) {
-        return { success: false, message: "Please specify which faculty member to delete (provide a name).", data: null };
-      }
-      let fCandidates = data.id
-        ? faculty.filter(f => f.id === data.id)
-        : faculty.filter(f => f.name.toLowerCase().includes(data.name.toLowerCase().trim()));
-      if (fCandidates.length > 1 && data.department) {
-        const narrow = fCandidates.filter(f => f.department.toLowerCase() === data.department.toLowerCase());
-        if (narrow.length > 0) fCandidates = narrow;
-      }
-      if (fCandidates.length === 0) return { success: false, message: "Faculty member not found.", data: null };
-      if (fCandidates.length > 1) {
-        return { success: false, message: `Multiple faculty found: ${fCandidates.map(f => `${f.name} (${f.department})`).join(", ")}. Please specify.`, data: fCandidates };
-      }
-      const fToDelete = fCandidates[0];
-      const remaining = faculty.filter(f => f.id !== fToDelete.id);
+      const before = faculty.length;
+      const remaining = faculty.filter((f) => !containsName(f.name, data.name));
       writeData("faculty.json", remaining);
-      return { success: true, message: `Faculty "${fToDelete.name}" removed.`, data: remaining };
+      return { success: true, message: `Deleted ${before - remaining.length} faculty member(s).`, data: null };
     }
 
     case "assign_subject": {
       const faculty = readData("faculty.json");
-      const member = faculty.find(f => f.name.toLowerCase().includes((data.faculty || "").toLowerCase()));
-      if (!member) return { success: false, message: "Faculty member not found.", data: null };
-      if (data.subject && !member.subjects.includes(data.subject)) {
-        member.subjects.push(data.subject);
-      }
+      const idx = faculty.findIndex((f) => containsName(f.name, data.faculty));
+      if (idx === -1) return { success: false, message: "Faculty member not found.", data: null };
+      const subjects = Array.isArray(faculty[idx].subjects) ? faculty[idx].subjects : [];
+      if (!subjects.includes(data.subject)) subjects.push(data.subject);
+      faculty[idx] = { ...faculty[idx], subjects };
       writeData("faculty.json", faculty);
-      return { success: true, message: `Subject "${data.subject}" assigned to ${member.name}.`, data: member };
+      return { success: true, message: `Assigned ${data.subject} to ${faculty[idx].name}.`, data: faculty[idx] };
     }
 
     case "generate_workload": {
       const faculty = readData("faculty.json");
-      const workload = faculty.map(f => ({
-        name: f.name, department: f.department,
-        subjectCount: f.subjects.length, subjects: f.subjects,
-      }));
-      return { success: true, message: "Faculty workload report generated.", data: workload };
-    }
-
-    // ===================== COURSE ACTIONS =====================
-
-    case "create_course": {
-      const courses = readData("courses.json");
-      const newId = courses.length > 0 ? Math.max(...courses.map(c => c.id)) + 1 : 1;
-      const newCourse = {
-        id: newId,
-        name: data.name || "New Course",
-        code: data.code || `COURSE${newId}`,
-        semester: data.semester || 1,
-        department: data.department || "General",
-        credits: data.credits || 3,
-        faculty: data.faculty || "TBD",
-      };
-      courses.push(newCourse);
-      writeData("courses.json", courses);
-      return { success: true, message: `Course "${newCourse.name}" created.`, data: newCourse };
+      const rows = faculty.map((f) => ({ name: f.name, department: f.department, subjectCount: (f.subjects || []).length }));
+      return { success: true, message: "Workload report generated.", data: rows };
     }
 
     case "list_courses": {
+      let rows = readData("courses.json");
+      if (data.department) rows = rows.filter((c) => String(c.department || "").toLowerCase() === String(data.department).toLowerCase());
+      if (data.semester !== undefined) rows = rows.filter((c) => Number(c.semester) === Number(data.semester));
+      return { success: true, message: `Found ${rows.length} course(s).`, data: rows };
+    }
+
+    case "create_course": {
       const courses = readData("courses.json");
-      let filtered = courses;
-      if (data.semester) filtered = filtered.filter(c => c.semester === data.semester);
-      if (data.department) filtered = filtered.filter(c => c.department.toLowerCase() === data.department.toLowerCase());
-      return { success: true, message: `Found ${filtered.length} course(s).`, data: filtered };
+      const row = {
+        id: nextId(courses),
+        name: data.name,
+        code: data.code || `C${Date.now().toString().slice(-4)}`,
+        semester: Number(data.semester || 1),
+        department: data.department || "General",
+        credits: Number(data.credits || 3),
+        faculty: data.faculty || "",
+      };
+      courses.push(row);
+      writeData("courses.json", courses);
+      return { success: true, message: `Course ${row.name} created.`, data: row };
     }
 
     case "update_course": {
       const courses = readData("courses.json");
-      if (!data.id && (!data.name || !data.name.trim())) {
-        return { success: false, message: "Please specify which course to update (provide a name).", data: null };
-      }
-      let ucIdx = data.id
-        ? courses.findIndex(c => c.id === data.id)
-        : courses.findIndex(c => c.name.toLowerCase().includes(data.name.toLowerCase().trim()));
-      if (ucIdx === -1) return { success: false, message: "Course not found.", data: null };
-      const { name: _searchName, ...courseFieldsToUpdate } = data;
-      const updated = { ...courses[ucIdx], ...courseFieldsToUpdate, id: courses[ucIdx].id, name: courses[ucIdx].name };
-      courses[ucIdx] = updated;
+      const idx = courses.findIndex((c) => containsName(c.name, data.name) || String(c.code || "").toLowerCase() === String(data.code || "").toLowerCase());
+      if (idx === -1) return { success: false, message: "Course not found.", data: null };
+      courses[idx] = {
+        ...courses[idx],
+        ...(data.semester !== undefined ? { semester: Number(data.semester) } : {}),
+        ...(data.credits !== undefined ? { credits: Number(data.credits) } : {}),
+        ...(data.department ? { department: data.department } : {}),
+      };
       writeData("courses.json", courses);
-      return { success: true, message: `Course "${updated.name}" updated successfully.`, data: updated };
+      return { success: true, message: `Course ${courses[idx].name} updated.`, data: courses[idx] };
     }
 
     case "delete_course": {
       const courses = readData("courses.json");
-      if (!data.id && (!data.name || !data.name.trim())) {
-        return { success: false, message: "Please specify which course to delete.", data: null };
-      }
-      let dcCandidates = data.id
-        ? courses.filter(c => c.id === data.id)
-        : courses.filter(c => c.name.toLowerCase().includes(data.name.toLowerCase().trim()));
-      if (data.department && dcCandidates.length > 1) {
-        const narrow = dcCandidates.filter(c => c.department.toLowerCase() === data.department.toLowerCase());
-        if (narrow.length > 0) dcCandidates = narrow;
-      }
-      if (dcCandidates.length === 0) return { success: false, message: "Course not found.", data: null };
-      if (dcCandidates.length > 1) {
-        return { success: false, message: `Multiple courses found: ${dcCandidates.map(c => `${c.name} (${c.department})`).join(", ")}. Be more specific.`, data: dcCandidates };
-      }
-      const dcToDelete = dcCandidates[0];
-      const remaining = courses.filter(c => c.id !== dcToDelete.id);
+      const before = courses.length;
+      const remaining = courses.filter((c) => !containsName(c.name, data.name) && String(c.code || "").toLowerCase() !== String(data.name || "").toLowerCase());
       writeData("courses.json", remaining);
-      return { success: true, message: `Course "${dcToDelete.name}" removed. ${remaining.length} course(s) remaining.`, data: remaining };
+      return { success: true, message: `Deleted ${before - remaining.length} course(s).`, data: null };
     }
-
-    // ===================== ATTENDANCE ACTIONS ===================
 
     case "record_attendance": {
       const attendance = readData("attendance.json");
-      const students = readData("students.json");
-      const student = students.find(s => s.name.toLowerCase().includes((data.studentName || "").toLowerCase()));
-      const newId = attendance.length > 0 ? Math.max(...attendance.map(a => a.id)) + 1 : 1;
-      const record = {
-        id: newId,
-        studentId: student ? student.id : null,
-        studentName: data.studentName || "Unknown",
+      const row = {
+        id: nextId(attendance),
+        studentName: data.studentName,
         courseCode: data.courseCode || "GENERAL",
+        status: String(data.status || "present").toLowerCase() === "absent" ? "absent" : "present",
         date: data.date || new Date().toISOString().split("T")[0],
-        status: data.status || "present",
       };
-      attendance.push(record);
+      attendance.push(row);
       writeData("attendance.json", attendance);
-      return { success: true, message: `Attendance recorded for ${record.studentName}: ${record.status} on ${record.date}.`, data: record };
+      return { success: true, message: `Attendance recorded for ${row.studentName}.`, data: row };
     }
 
     case "list_attendance": {
-      const attendance = readData("attendance.json");
-      let filtered = attendance;
-      if (data.studentName) filtered = filtered.filter(a => a.studentName.toLowerCase().includes(data.studentName.toLowerCase()));
-      if (data.date) filtered = filtered.filter(a => a.date === data.date);
-      if (data.courseCode) filtered = filtered.filter(a => a.courseCode === data.courseCode);
-      return { success: true, message: `Found ${filtered.length} attendance record(s).`, data: filtered };
+      let rows = readData("attendance.json");
+      if (data.studentName) rows = rows.filter((a) => containsName(a.studentName, data.studentName));
+      if (data.date) rows = rows.filter((a) => String(a.date) === String(data.date));
+      return { success: true, message: `Found ${rows.length} attendance record(s).`, data: rows };
     }
 
     case "attendance_report": {
       const attendance = readData("attendance.json");
-      const students = readData("students.json");
-      const threshold = data.threshold || 75;
-      const report = students.map(s => {
-        const records = attendance.filter(a => a.studentId === s.id);
-        const total = records.length;
-        const present = records.filter(a => a.status === "present").length;
-        const percentage = total > 0 ? Math.round((present / total) * 100) : 100;
-        return { name: s.name, department: s.department, total, present, percentage };
+      const threshold = Number(data.threshold || 75);
+      const grouped = {};
+      attendance.forEach((a) => {
+        const k = a.studentName;
+        if (!grouped[k]) grouped[k] = { studentName: k, total: 0, present: 0 };
+        grouped[k].total += 1;
+        if (String(a.status || "").toLowerCase() === "present") grouped[k].present += 1;
       });
-      const below = report.filter(r => r.percentage < threshold);
-      return {
-        success: true,
-        message: `${below.length} student(s) below ${threshold}% attendance.`,
-        data: { threshold, studentsBelow: below, allStudents: report },
-      };
+      const rows = Object.values(grouped).map((r) => ({
+        ...r,
+        percentage: r.total > 0 ? Math.round((r.present / r.total) * 100) : 100,
+      }));
+      const below = rows.filter((r) => r.percentage < threshold);
+      return { success: true, message: `${below.length} student(s) below ${threshold}% attendance.`, data: { threshold, studentsBelow: below, allStudents: rows } };
     }
-
-    // ===================== EXAM ACTIONS =========================
 
     case "schedule_exam": {
       const exams = readData("exams.json");
-      const newExamId = exams.length > 0 ? Math.max(...exams.map(e => e.id)) + 1 : 1;
-      const newExam = {
-        id: newExamId,
+      const row = {
+        id: nextId(exams),
         course: data.course || "Unknown",
         date: data.date || "TBD",
         type: data.type || "midterm",
         scheduledAt: new Date().toISOString().split("T")[0],
       };
-      exams.push(newExam);
+      exams.push(row);
       writeData("exams.json", exams);
-      return { success: true, message: `${newExam.type.charAt(0).toUpperCase() + newExam.type.slice(1)} exam for "${newExam.course}" scheduled on ${newExam.date}.`, data: newExam };
+      return {
+        success: true,
+        message: `${row.type.charAt(0).toUpperCase() + row.type.slice(1)} exam for "${row.course}" scheduled on ${row.date}.`,
+        data: row,
+      };
     }
 
     case "list_exams": {
-      const exams = readData("exams.json");
-      return { success: true, message: exams.length > 0 ? `Found ${exams.length} scheduled exam(s).` : "No exams scheduled yet.", data: exams };
+      const rows = readData("exams.json");
+      return { success: true, message: rows.length > 0 ? `Found ${rows.length} scheduled exam(s).` : "No exams scheduled.", data: rows };
     }
 
-    // ===================== REPORT ACTIONS ========================
-
     case "generate_report": {
-      const students = readData("students.json");
-      const faculty = readData("faculty.json");
-      const courses = readData("courses.json");
-      const attendance = readData("attendance.json");
-      const marks = readData("marks.json");
-      const departmentCounts = {};
-      students.forEach((s) => {
-        const key = s.department || "General";
-        departmentCounts[key] = (departmentCounts[key] || 0) + 1;
-      });
-
-      const passed = marks.filter(m => m.maxMarks > 0 && ((m.marks / m.maxMarks) * 100) >= 40).length;
-      const passRate = marks.length > 0 ? Math.round((passed / marks.length) * 100) : 0;
-      const presentCount = attendance.filter(a => a.status === "present").length;
-      const avgAttendance = attendance.length > 0 ? Math.round((presentCount / attendance.length) * 100) : 0;
-
-      const report = {
-        totalStudents: students.length,
-        totalFaculty: faculty.length,
-        totalCourses: courses.length,
-        totalAttendanceRecords: attendance.length,
-        totalMarksRecords: marks.length,
-        departments: [...new Set(students.map(s => s.department))],
-        departmentCounts,
-        passRate,
-        averageAttendance: avgAttendance,
-        averageGPA: students.length > 0
-          ? (students.reduce((sum, s) => sum + (s.gpa || 0), 0) / students.length).toFixed(2)
-          : "N/A",
+      const summary = {
+        students: readData("students.json").length,
+        faculty: readData("faculty.json").length,
+        courses: readData("courses.json").length,
+        attendanceRecords: readData("attendance.json").length,
+        exams: readData("exams.json").length,
+        marks: readData("marks.json").length,
       };
-      return {
-        success: true,
-        message:
-          "University Analytics Report\n" +
-          `Total Students: ${report.totalStudents}\n` +
-          `Departments: ${Object.entries(report.departmentCounts).map(([d, c]) => `${d}(${c})`).join(", ")}\n` +
-          `Average GPA: ${report.averageGPA}\n` +
-          `Average Attendance: ${report.averageAttendance}%\n` +
-          `Pass Rate: ${report.passRate}%\n` +
-          `Total Faculty: ${report.totalFaculty}\n` +
-          `Total Courses: ${report.totalCourses}`,
-        data: report,
-      };
+      return { success: true, message: "University report generated.", data: summary };
     }
 
     default:
-      return { success: false, message: `Unknown action: "${action}". Cannot execute.`, data: null };
+      return { success: false, message: `Unsupported action: ${action}`, data: null };
   }
 }
 
