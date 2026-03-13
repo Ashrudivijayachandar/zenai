@@ -1,1 +1,12 @@
-[]
+[
+  { "id": 1, "name": "Prof. Rajesh Kumar", "department": "CSE", "designation": "Associate Professor", "subjects": ["Data Structures", "Algorithms", "C Programming", "Machine Learning"], "email": "r.kumar@university.edu", "phone": "9900110011", "experience": 12 },
+  { "id": 2, "name": "Prof. Sunita Meena", "department": "IT", "designation": "Assistant Professor", "subjects": ["Database Systems", "Web Development", "Python"], "email": "s.meena@university.edu", "phone": "9900110022", "experience": 8 },
+  { "id": 3, "name": "Prof. Venkat Rao", "department": "ECE", "designation": "Professor", "subjects": ["Digital Electronics", "Signal Processing", "VLSI"], "email": "v.rao@university.edu", "phone": "9900110033", "experience": 20 },
+  { "id": 4, "name": "Prof. Kavitha Sharma", "department": "CSE", "designation": "Assistant Professor", "subjects": ["Operating Systems", "Computer Networks"], "email": "k.sharma@university.edu", "phone": "9900110044", "experience": 6 },
+  { "id": 5, "name": "Prof. Anil Patel", "department": "ME", "designation": "Associate Professor", "subjects": ["Thermodynamics", "Fluid Mechanics", "Manufacturing"], "email": "a.patel@university.edu", "phone": "9900110055", "experience": 15 },
+  { "id": 6, "name": "Prof. Rekha Nair", "department": "IT", "designation": "Assistant Professor", "subjects": ["Machine Learning", "Artificial Intelligence"], "email": "r.nair@university.edu", "phone": "9900110066", "experience": 5 },
+  { "id": 7, "name": "Prof. Suresh Iyer", "department": "ECE", "designation": "Associate Professor", "subjects": ["Microprocessors", "Communication Systems"], "email": "s.iyer@university.edu", "phone": "9900110077", "experience": 14 },
+  { "id": 8, "name": "Prof. Priya Krishnan", "department": "CSE", "designation": "Professor", "subjects": ["Software Engineering", "Cloud Computing", "DevOps"], "email": "p.krishnan@university.edu", "phone": "9900110088", "experience": 18 },
+  { "id": 9, "name": "Prof. Ramesh Jha", "department": "MECH", "designation": "Associate Professor", "subjects": ["Engineering Mechanics", "Manufacturing Processes", "CAD/CAM"], "email": "r.jha@university.edu", "phone": "9900110099", "experience": 11 },
+  { "id": 10, "name": "Prof. Deepa Kulkarni", "department": "CIVIL", "designation": "Assistant Professor", "subjects": ["Structural Analysis", "Surveying", "Construction Management"], "email": "d.kulkarni@university.edu", "phone": "9900110100", "experience": 7 }
+]

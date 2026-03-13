@@ -1,1 +1,221 @@
-[]
+[
+  {
+    "id": 1,
+    "name": "Academic Advisor",
+    "role": "student",
+    "domain": "academic_advisor",
+    "description": "AI agent for Academic Advisor",
+    "purpose": "Academic Advisor",
+    "allowedActions": [
+      "view_my_courses",
+      "view_my_gpa",
+      "view_course_details",
+      "list_courses"
+    ],
+    "systemPrompt": "You are a Academic Advisor AI agent.",
+    "createdAt": "2026-03-12T22:36:43.918Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 2,
+    "name": "Attendance Tracker",
+    "role": "student",
+    "domain": "attendance_tracker",
+    "description": "AI agent for Attendance Tracker",
+    "purpose": "Attendance Tracker",
+    "allowedActions": [
+      "view_my_attendance",
+      "view_my_attendance_report"
+    ],
+    "systemPrompt": "You are a Attendance Tracker AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 3,
+    "name": "Results & Grades",
+    "role": "student",
+    "domain": "results___grades",
+    "description": "AI agent for Results & Grades",
+    "purpose": "Results & Grades",
+    "allowedActions": [
+      "view_my_marks",
+      "view_my_results"
+    ],
+    "systemPrompt": "You are a Results & Grades AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 4,
+    "name": "Timetable & Exams",
+    "role": "student",
+    "domain": "timetable___exams",
+    "description": "AI agent for Timetable & Exams",
+    "purpose": "Timetable & Exams",
+    "allowedActions": [
+      "view_my_timetable",
+      "view_exam_schedule"
+    ],
+    "systemPrompt": "You are a Timetable & Exams AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 5,
+    "name": "Profile Manager",
+    "role": "student",
+    "domain": "profile_manager",
+    "description": "AI agent for Profile Manager",
+    "purpose": "Profile Manager",
+    "allowedActions": [
+      "view_my_profile",
+      "update_my_profile"
+    ],
+    "systemPrompt": "You are a Profile Manager AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 6,
+    "name": "Notice Board",
+    "role": "student",
+    "domain": "notice_board",
+    "description": "AI agent for Notice Board",
+    "purpose": "Notice Board",
+    "allowedActions": [
+      "view_notices"
+    ],
+    "systemPrompt": "You are a Notice Board AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 7,
+    "name": "Class Manager",
+    "role": "faculty",
+    "domain": "class_manager",
+    "description": "AI agent for Class Manager",
+    "purpose": "Class Manager",
+    "allowedActions": [
+      "list_students",
+      "create_student",
+      "update_student",
+      "delete_student",
+      "list_courses",
+      "create_course",
+      "update_course",
+      "delete_course"
+    ],
+    "systemPrompt": "You are a Class Manager AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 8,
+    "name": "Attendance Manager",
+    "role": "faculty",
+    "domain": "attendance_manager",
+    "description": "AI agent for Attendance Manager",
+    "purpose": "Attendance Manager",
+    "allowedActions": [
+      "record_attendance",
+      "list_attendance",
+      "attendance_report"
+    ],
+    "systemPrompt": "You are a Attendance Manager AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 9,
+    "name": "Marks Entry",
+    "role": "faculty",
+    "domain": "marks_entry",
+    "description": "AI agent for Marks Entry",
+    "purpose": "Marks Entry",
+    "allowedActions": [
+      "enter_marks",
+      "view_marks",
+      "update_marks",
+      "delete_marks",
+      "view_marks_analytics"
+    ],
+    "systemPrompt": "You are a Marks Entry AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 10,
+    "name": "Schedule Manager",
+    "role": "faculty",
+    "domain": "schedule_manager",
+    "description": "AI agent for Schedule Manager",
+    "purpose": "Schedule Manager",
+    "allowedActions": [
+      "view_schedule",
+      "schedule_exam",
+      "list_exams"
+    ],
+    "systemPrompt": "You are a Schedule Manager AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 11,
+    "name": "Analytics Dashboard",
+    "role": "faculty",
+    "domain": "analytics_dashboard",
+    "description": "AI agent for Analytics Dashboard",
+    "purpose": "Analytics Dashboard",
+    "allowedActions": [
+      "generate_report",
+      "generate_workload",
+      "attendance_report",
+      "view_marks_analytics"
+    ],
+    "systemPrompt": "You are a Analytics Dashboard AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  },
+  {
+    "id": 12,
+    "name": "Faculty Profile",
+    "role": "faculty",
+    "domain": "faculty_profile",
+    "description": "AI agent for Faculty Profile",
+    "purpose": "Faculty Profile",
+    "allowedActions": [
+      "view_my_faculty_profile",
+      "update_my_faculty_profile",
+      "list_faculty"
+    ],
+    "systemPrompt": "You are a Faculty Profile AI agent.",
+    "createdAt": "2026-03-12T22:36:43.919Z",
+    "chatHistory": [],
+    "actionLog": [],
+    "pendingConfirmations": {}
+  }
+]

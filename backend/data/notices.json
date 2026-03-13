@@ -1,1 +1,12 @@
-[]
+[
+  { "id": 1, "title": "Mid-Semester Exam Schedule Released", "category": "exam", "priority": "high", "department": "ALL", "date": "2026-03-10", "content": "Mid-semester examinations will be held from March 25 to April 5, 2026. Please check your department notice board for detailed schedule." },
+  { "id": 2, "title": "Hackathon 2026 — Registrations Open", "category": "event", "priority": "medium", "department": "ALL", "date": "2026-03-08", "content": "ZenAi University Hackathon 2026 registrations are now open. Teams of 2-4 can register by March 20. Prizes worth ₹50,000!" },
+  { "id": 3, "title": "Placement Drive — Infosys", "category": "placement", "priority": "high", "department": "ALL", "date": "2026-03-07", "content": "Infosys campus placement drive on March 18, 2026. Eligible: CSE, IT, ECE students with GPA ≥ 7.0. Register on the placement portal." },
+  { "id": 4, "title": "Workshop on Cloud Computing", "category": "workshop", "priority": "medium", "department": "CSE", "date": "2026-03-05", "content": "A 2-day workshop on AWS Cloud Computing will be held on March 15-16 in CS-Lab-2. Limited to 40 seats." },
+  { "id": 5, "title": "Library Book Return Deadline", "category": "general", "priority": "low", "department": "ALL", "date": "2026-03-04", "content": "All borrowed library books must be returned by March 20, 2026. Late returns will incur a fine of ₹10/day." },
+  { "id": 6, "title": "Annual Sports Day", "category": "event", "priority": "medium", "department": "ALL", "date": "2026-03-03", "content": "Annual Sports Day will be held on March 22, 2026. Event registrations at the sports office by March 15." },
+  { "id": 7, "title": "Attendance Shortage Warning", "category": "exam", "priority": "high", "department": "ALL", "date": "2026-03-01", "content": "Students with attendance below 75% will not be allowed to appear for mid-semester exams. Check your attendance now." },
+  { "id": 8, "title": "AI/ML Workshop — Prof. Rekha Nair", "category": "workshop", "priority": "medium", "department": "IT", "date": "2026-02-28", "content": "Hands-on workshop on Machine Learning with Python. March 12, 2-5 PM, IT-Lab-1. Open to IT and CSE students." },
+  { "id": 9, "title": "Placement Drive — TCS", "category": "placement", "priority": "high", "department": "ALL", "date": "2026-02-25", "content": "TCS campus placement drive on March 5, 2026. Eligible: All departments with GPA ≥ 6.5. Pre-register on TCS iON." },
+  { "id": 10, "title": "Fee Payment Deadline Extended", "category": "general", "priority": "high", "department": "ALL", "date": "2026-02-20", "content": "Semester fee payment deadline extended to March 10, 2026. Late fee of ₹500 applies after the deadline." }
+]

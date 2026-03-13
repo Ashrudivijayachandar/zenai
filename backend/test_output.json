@@ -1,0 +1,7 @@
+{
+  "action": {
+    "action": "view_my_marks",
+    "data": {}
+  },
+  "response": "Here are your marks. 📝"
+}

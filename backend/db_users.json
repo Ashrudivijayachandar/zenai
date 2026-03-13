@@ -1,0 +1,295 @@
+{
+  "students": [
+    {
+      "id": 1,
+      "name": "Rahul Sharma",
+      "email": "rahul.sharma@university.edu",
+      "department": "IT",
+      "year": 2024,
+      "gpa": "8.30",
+      "roll_number": "ROLL-2024-001"
+    },
+    {
+      "id": 2,
+      "name": "Priya Patel",
+      "email": "priya.patel@university.edu",
+      "department": "CSE",
+      "year": 2023,
+      "gpa": "9.10",
+      "roll_number": "ROLL-2023-002"
+    },
+    {
+      "id": 3,
+      "name": "Amit Kumar",
+      "email": "amit.kumar@university.edu",
+      "department": "ECE",
+      "year": 2024,
+      "gpa": "7.50",
+      "roll_number": "ROLL-2024-003"
+    },
+    {
+      "id": 4,
+      "name": "Sanjay Gupta",
+      "email": "sanjay.gupta@university.edu",
+      "department": "CSE",
+      "year": 2024,
+      "gpa": "7.30",
+      "roll_number": "ROLL-2024-004"
+    },
+    {
+      "id": 5,
+      "name": "Meera Krishnan",
+      "email": "meera.krishnan@university.edu",
+      "department": "ECE",
+      "year": 2023,
+      "gpa": "8.80",
+      "roll_number": "ROLL-2023-005"
+    },
+    {
+      "id": 6,
+      "name": "Sneha Reddy",
+      "email": "sneha.reddy@university.edu",
+      "department": "CSE",
+      "year": 2023,
+      "gpa": "8.70",
+      "roll_number": "ROLL-2023-006"
+    },
+    {
+      "id": 7,
+      "name": "Vikram Singh",
+      "email": "vikram.singh@university.edu",
+      "department": "ECE",
+      "year": 2024,
+      "gpa": "7.20",
+      "roll_number": "ROLL-2024-007"
+    },
+    {
+      "id": 8,
+      "name": "Ananya Iyer",
+      "email": "ananya.iyer@university.edu",
+      "department": "MECH",
+      "year": 2025,
+      "gpa": "9.00",
+      "roll_number": "ROLL-2025-008"
+    },
+    {
+      "id": 9,
+      "name": "Rohan Mehta",
+      "email": "rohan.mehta@university.edu",
+      "department": "CSE",
+      "year": 2022,
+      "gpa": "8.10",
+      "roll_number": "ROLL-2022-009"
+    },
+    {
+      "id": 10,
+      "name": "Kavya Nair",
+      "email": "kavya.nair@university.edu",
+      "department": "IT",
+      "year": 2023,
+      "gpa": "9.40",
+      "roll_number": "ROLL-2023-010"
+    },
+    {
+      "id": 11,
+      "name": "Arjun Tiwari",
+      "email": "arjun.tiwari@university.edu",
+      "department": "CIVIL",
+      "year": 2024,
+      "gpa": "7.80",
+      "roll_number": "ROLL-2024-011"
+    },
+    {
+      "id": 12,
+      "name": "Divya Mishra",
+      "email": "divya.mishra@university.edu",
+      "department": "ECE",
+      "year": 2025,
+      "gpa": "8.50",
+      "roll_number": "ROLL-2025-012"
+    },
+    {
+      "id": 13,
+      "name": "Karthik Raja",
+      "email": "karthik.raja@university.edu",
+      "department": "CSE",
+      "year": 2024,
+      "gpa": "6.90",
+      "roll_number": "ROLL-2024-013"
+    },
+    {
+      "id": 14,
+      "name": "Pooja Verma",
+      "email": "pooja.verma@university.edu",
+      "department": "MECH",
+      "year": 2023,
+      "gpa": "7.60",
+      "roll_number": "ROLL-2023-014"
+    },
+    {
+      "id": 15,
+      "name": "Nikhil Joshi",
+      "email": "nikhil.joshi@university.edu",
+      "department": "IT",
+      "year": 2022,
+      "gpa": "8.90",
+      "roll_number": "ROLL-2022-015"
+    },
+    {
+      "id": 16,
+      "name": "Lakshmi Prasad",
+      "email": "lakshmi.prasad@university.edu",
+      "department": "CIVIL",
+      "year": 2025,
+      "gpa": "9.20",
+      "roll_number": "ROLL-2025-016"
+    },
+    {
+      "id": 17,
+      "name": "Aditya Bhatt",
+      "email": "aditya.bhatt@university.edu",
+      "department": "MECH",
+      "year": 2024,
+      "gpa": "6.50",
+      "roll_number": "ROLL-2024-017"
+    },
+    {
+      "id": 18,
+      "name": "Riya Shah",
+      "email": "riya.shah@university.edu",
+      "department": "IT",
+      "year": 2025,
+      "gpa": "9.10",
+      "roll_number": "ROLL-2025-018"
+    },
+    {
+      "id": 19,
+      "name": "Harshini Reddy",
+      "email": "harshini.reddy@university.edu",
+      "department": "CSE",
+      "year": 2022,
+      "gpa": "8.60",
+      "roll_number": "ROLL-2022-019"
+    }
+  ],
+  "faculty": [
+    {
+      "id": 1,
+      "name": "Prof. Rajesh Kumar",
+      "email": "r.kumar@university.edu",
+      "department": "CSE",
+      "designation": "Associate Professor",
+      "subjects": [
+        "Data Structures",
+        "Algorithms",
+        "C Programming",
+        "Machine Learning"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Prof. Sunita Meena",
+      "email": "s.meena@university.edu",
+      "department": "IT",
+      "designation": "Assistant Professor",
+      "subjects": [
+        "Database Systems",
+        "Web Development",
+        "Python"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Prof. Venkat Rao",
+      "email": "v.rao@university.edu",
+      "department": "ECE",
+      "designation": "Professor",
+      "subjects": [
+        "Digital Electronics",
+        "Signal Processing",
+        "VLSI"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Prof. Kavitha Sharma",
+      "email": "k.sharma@university.edu",
+      "department": "CSE",
+      "designation": "Assistant Professor",
+      "subjects": [
+        "Operating Systems",
+        "Computer Networks"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Prof. Anil Patel",
+      "email": "a.patel@university.edu",
+      "department": "ME",
+      "designation": "Associate Professor",
+      "subjects": [
+        "Thermodynamics",
+        "Fluid Mechanics",
+        "Manufacturing"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Prof. Rekha Nair",
+      "email": "r.nair@university.edu",
+      "department": "IT",
+      "designation": "Assistant Professor",
+      "subjects": [
+        "Machine Learning",
+        "Artificial Intelligence"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Prof. Suresh Iyer",
+      "email": "s.iyer@university.edu",
+      "department": "ECE",
+      "designation": "Associate Professor",
+      "subjects": [
+        "Microprocessors",
+        "Communication Systems"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Prof. Priya Krishnan",
+      "email": "p.krishnan@university.edu",
+      "department": "CSE",
+      "designation": "Professor",
+      "subjects": [
+        "Software Engineering",
+        "Cloud Computing",
+        "DevOps"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Prof. Ramesh Jha",
+      "email": "r.jha@university.edu",
+      "department": "MECH",
+      "designation": "Associate Professor",
+      "subjects": [
+        "Engineering Mechanics",
+        "Manufacturing Processes",
+        "CAD/CAM"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Prof. Deepa Kulkarni",
+      "email": "d.kulkarni@university.edu",
+      "department": "CIVIL",
+      "designation": "Assistant Professor",
+      "subjects": [
+        "Structural Analysis",
+        "Surveying",
+        "Construction Management"
+      ]
+    }
+  ]
+}

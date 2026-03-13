@@ -1,0 +1,269 @@
+﻿ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù
+Γòæ  ZENAI ΓÇö COMPREHENSIVE AGENT VALIDATION                 Γòæ
+Γòæ  Testing all 12 agents with diverse command phrasings   Γòæ
+ΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥
+
+≡ƒƒó Server is running
+
+≡ƒî▒ Checking agents...
+
+   Γ£à Found 12 agents already seeded
+
+
+≡ƒÄô Agent 1: Academic Advisor (student)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à PASS "my gpa" ΓåÆ view_my_gpa
+  Γ£à PASS "show my gpa" ΓåÆ view_my_gpa
+  Γ£à PASS "what is my gpa" ΓåÆ view_my_gpa
+  Γ£à PASS "whats my cgpa" ΓåÆ view_my_gpa
+  Γ£à PASS "grades" ΓåÆ view_my_gpa
+  Γ£à PASS "my courses" ΓåÆ view_my_courses
+  Γ£à PASS "what courses am I enrolled in" ΓåÆ view_my_courses
+  Γ£à PASS "show my enrolled courses" ΓåÆ view_my_courses
+  Γ£à PASS "what subjects do I have" ΓåÆ view_my_courses
+  Γ£à PASS "tell me about CS201" ΓåÆ view_course_details
+  Γ£à PASS "details of Data Structures" ΓåÆ view_course_details
+  Γ£à PASS "list all courses" ΓåÆ list_courses
+  Γ£à PASS "show courses" ΓåÆ list_courses
+  Γ£à PASS "courses" ΓåÆ view_my_courses
+  Γ£à PASS "hello" ΓåÆ null (greeting/clarify)
+  Γ£à PASS "help" ΓåÆ null (greeting/clarify)
+  Γ£à PASS "thanks" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 17/17 passed
+
+≡ƒÄô Agent 2: Attendance Tracker (student)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à PASS "my attendance" ΓåÆ view_my_attendance
+  Γ£à PASS "show my attendance" ΓåÆ view_my_attendance
+  Γ£à PASS "how is my attendance" ΓåÆ view_my_attendance
+  Γ£à PASS "attendance" ΓåÆ view_my_attendance
+  Γ£à PASS "my attendance report" ΓåÆ view_my_attendance_report
+  Γ£à PASS "attendance percentage" ΓåÆ view_my_attendance_report
+  Γ£à PASS "am I below 75" ΓåÆ view_my_attendance_report
+  Γ£à PASS "shortage" ΓåÆ view_my_attendance_report
+  Γ¥î FAIL "can I sit for exams" ΓåÆ got: null (greeting/clarify), expected: view_my_attendance_report
+  Γ£à PASS "hi" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 9/10 passed
+
+≡ƒÄô Agent 3: Results & Grades (student)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à PASS "my marks" ΓåÆ view_my_marks
+  Γ£à PASS "show my marks" ΓåÆ view_my_marks
+  Γ£à PASS "my midterm marks" ΓåÆ view_my_marks
+  Γ£à PASS "marks in CS201" ΓåÆ view_my_marks
+  Γ£à PASS "my results" ΓåÆ view_my_results
+  Γ£à PASS "show my results" ΓåÆ view_my_results
+  Γ¥î FAIL "how did I do in exams" ΓåÆ got: null (greeting/clarify), expected: view_my_results
+  Γ£à PASS "scorecard" ΓåÆ view_my_results
+  Γ£à PASS "hello" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 8/9 passed
+
+≡ƒÄô Agent 4: Timetable & Exams (student)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à PASS "my timetable" ΓåÆ view_my_timetable
+  Γ£à PASS "show my schedule" ΓåÆ view_my_timetable
+  Γ£à PASS "what classes do I have today" ΓåÆ view_my_timetable
+  Γ£à PASS "monday classes" ΓåÆ view_my_timetable
+  Γ£à PASS "timetable" ΓåÆ view_my_timetable
+  Γ£à PASS "exam schedule" ΓåÆ view_exam_schedule
+  Γ£à PASS "when are my exams" ΓåÆ view_exam_schedule
+  Γ£à PASS "upcoming exams" ΓåÆ view_exam_schedule
+  Γ£à PASS "hey" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 9/9 passed
+
+≡ƒÄô Agent 5: Profile Manager (student)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à PASS "my profile" ΓåÆ view_my_profile
+  Γ£à PASS "show my profile" ΓåÆ view_my_profile
+  Γ£à PASS "who am I" ΓåÆ view_my_profile
+  Γ£à PASS "my details" ΓåÆ view_my_profile
+  Γ£à PASS "update my phone to 9876543210" ΓåÆ update_my_profile
+  Γ£à PASS "change my email to test@uni.edu" ΓåÆ update_my_profile
+  Γ£à PASS "update" ΓåÆ null (greeting/clarify)
+  Γ£à PASS "hello" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 8/8 passed
+
+≡ƒÄô Agent 6: Notice Board (student)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à PASS "notices" ΓåÆ view_notices
+  Γ£à PASS "show notices" ΓåÆ view_notices
+  Γ£à PASS "any announcements" ΓåÆ view_notices
+  Γ£à PASS "exam notices" ΓåÆ view_notices
+  Γ£à PASS "placement notices" ΓåÆ view_notices
+  Γ£à PASS "any new notices" ΓåÆ view_notices
+  Γ£à PASS "hi" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 7/7 passed
+
+≡ƒæ¿ΓÇì≡ƒÅ½ Agent 7: Class Manager (faculty)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à PASS "list all students" ΓåÆ list_students
+  Γ£à PASS "show all students" ΓåÆ list_students
+  Γ£à PASS "get students" ΓåÆ list_students
+  Γ£à PASS "students" ΓåÆ list_students
+  Γ£à PASS "show CSE students" ΓåÆ list_students
+  Γ£à PASS "view all students" ΓåÆ list_students
+  Γ£à PASS "list students in ECE department" ΓåÆ list_students
+  Γ£à PASS "display all student records" ΓåÆ list_students
+  Γ£à PASS "show all records" ΓåÆ list_students
+  Γ£à PASS "enroll Harshini in CSE 2024" ΓåÆ create_student
+  Γ£à PASS "add student Ravi to IT year 3" ΓåÆ create_student
+  Γ£à PASS "register Meera in ECE" ΓåÆ create_student
+  Γ£à PASS "create student name Priya department CSE year 2025" ΓåÆ create_student
+  Γ£à PASS "add student" ΓåÆ null (greeting/clarify) (should clarify (no name given))
+  Γ£à PASS "create student" ΓåÆ null (greeting/clarify) (should clarify (no name given))
+  Γ¥î FAIL "update Rahul GPA to 8.5" ΓåÆ got: null (greeting/clarify), expected: update_student
+  Γ£à PASS "change Priya department to ECE" ΓåÆ update_student
+  Γ£à PASS "update student" ΓåÆ null (greeting/clarify) (should ask for name)
+  Γ¥î FAIL "delete Rahul" ΓåÆ got: null (greeting/clarify), expected: delete_student
+  Γ¥î FAIL "remove Harshini from CSE" ΓåÆ got: null (greeting/clarify), expected: delete_student
+  Γ¥î FAIL "list all courses" ΓåÆ got: null (greeting/clarify), expected: list_courses
+  Γ¥î FAIL "show courses" ΓåÆ got: null (greeting/clarify), expected: list_courses
+  Γ¥î FAIL "create course Data Structures CS201 semester 3 CSE 4 credits" ΓåÆ got: null (greeting/clarify), expected: create_course
+  Γ¥î FAIL "delete course Data Structures" ΓåÆ got: null (greeting/clarify), expected: delete_course
+  Γ£à PASS "hello" ΓåÆ null (greeting/clarify)
+  Γ£à PASS "help" ΓåÆ null (greeting/clarify)
+  Γ¥î FAIL "show all students" ΓåÆ got: null (greeting/clarify), expected: list_students (SAFETY: must NOT return create_student)
+  Γ¥î FAIL "view records" ΓåÆ got: null (greeting/clarify), expected: list_students (SAFETY: must be read action)
+  ≡ƒôè 19/28 passed
+
+≡ƒæ¿ΓÇì≡ƒÅ½ Agent 8: Attendance Manager (faculty)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ¥î FAIL "record attendance Rahul present" ΓåÆ got: list_attendance, expected: record_attendance
+  Γ£à PASS "mark Priya absent today" ΓåÆ record_attendance
+  Γ£à PASS "show attendance" ΓåÆ list_attendance
+  Γ£à PASS "list attendance" ΓåÆ list_attendance
+  Γ£à PASS "attendance records" ΓåÆ list_attendance
+  Γ£à PASS "attendance report" ΓåÆ attendance_report
+  Γ£à PASS "show attendance report" ΓåÆ attendance_report
+  Γ£à PASS "students below 75 attendance" ΓåÆ attendance_report
+  Γ¥î FAIL "view all records" ΓåÆ got: record_attendance, expected: list_attendance (SAFETY: must be read action)
+  Γ£à PASS "hi" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 8/10 passed
+
+≡ƒæ¿ΓÇì≡ƒÅ½ Agent 9: Marks Entry (faculty)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ¥î FAIL "enter marks for Rahul CS201 midterm 78" ΓåÆ got: view_marks, expected: enter_marks
+  Γ¥î FAIL "add marks" ΓåÆ got: null (greeting/clarify), expected: enter_marks
+  Γ£à PASS "show marks for Rahul" ΓåÆ view_marks
+  Γ£à PASS "marks of CS201" ΓåÆ view_marks
+  Γ£à PASS "view all marks" ΓåÆ view_marks
+  Γ£à PASS "show all records" ΓåÆ view_marks
+  Γ£à PASS "list marks" ΓåÆ view_marks
+  Γ£à PASS "update marks of Priya" ΓåÆ update_marks
+  Γ¥î FAIL "delete marks of Amit" ΓåÆ got: null (greeting/clarify), expected: delete_marks
+  Γ¥î FAIL "marks analytics" ΓåÆ got: null (greeting/clarify), expected: view_marks_analytics
+  Γ¥î FAIL "class averages" ΓåÆ got: null (greeting/clarify), expected: view_marks_analytics
+  Γ£à PASS "hello" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 7/12 passed
+
+≡ƒæ¿ΓÇì≡ƒÅ½ Agent 10: Schedule Manager (faculty)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à PASS "my teaching schedule" ΓåÆ view_schedule
+  Γ£à PASS "my classes today" ΓåÆ view_schedule
+  Γ£à PASS "show schedule" ΓåÆ view_schedule
+  Γ£à PASS "timetable" ΓåÆ view_schedule
+  Γ£à PASS "monday schedule" ΓåÆ view_schedule
+  Γ£à PASS "list exams" ΓåÆ list_exams
+  Γ£à PASS "show exams" ΓåÆ list_exams
+  Γ£à PASS "upcoming exams" ΓåÆ list_exams
+  Γ£à PASS "schedule exam Data Structures 2026-04-15 midterm" ΓåÆ schedule_exam
+  Γ£à PASS "hey" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 10/10 passed
+
+≡ƒæ¿ΓÇì≡ƒÅ½ Agent 11: Analytics Dashboard (faculty)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à PASS "generate report" ΓåÆ generate_report
+  Γ£à PASS "show report" ΓåÆ generate_report
+  Γ£à PASS "university report" ΓåÆ generate_report
+  Γ£à PASS "summary" ΓåÆ generate_report
+  Γ¥î FAIL "analytics" ΓåÆ got: view_marks_analytics, expected: generate_report
+  Γ¥î FAIL "faculty workload" ΓåÆ got: null (greeting/clarify), expected: generate_workload
+  Γ£à PASS "workload report" ΓåÆ generate_workload
+  Γ£à PASS "attendance report" ΓåÆ attendance_report
+  Γ£à PASS "marks analytics" ΓåÆ view_marks_analytics
+  Γ£à PASS "class averages" ΓåÆ view_marks_analytics
+  Γ£à PASS "hello" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 9/11 passed
+
+≡ƒæ¿ΓÇì≡ƒÅ½ Agent 12: Faculty Profile (faculty)
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  Γ£à PASS "my faculty profile" ΓåÆ view_my_faculty_profile
+  Γ£à PASS "show my profile" ΓåÆ view_my_faculty_profile
+  Γ£à PASS "my profile" ΓåÆ view_my_faculty_profile
+  Γ£à PASS "who am I" ΓåÆ view_my_faculty_profile
+  Γ£à PASS "update my phone to 9988776655" ΓåÆ update_my_faculty_profile
+  Γ£à PASS "change my email to prof@uni.edu" ΓåÆ update_my_faculty_profile
+  Γ£à PASS "list faculty" ΓåÆ list_faculty
+  Γ£à PASS "show faculty" ΓåÆ list_faculty
+  Γ£à PASS "faculty in CSE" ΓåÆ list_faculty
+  Γ£à PASS "all faculty members" ΓåÆ list_faculty
+  Γ£à PASS "hello" ΓåÆ null (greeting/clarify)
+  ≡ƒôè 11/11 passed
+
+
+ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù
+Γòæ  TEST SUMMARY                                           Γòæ
+ΓòáΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòú
+Γòæ  Total tests:  142                                     Γòæ
+Γòæ  Γ£à Passed:    122                                     Γòæ
+Γòæ  Γ¥î Failed:    20                                      Γòæ
+Γòæ  ΓÜá∩╕Å  Skipped:   0                                       Γòæ
+Γòæ  Success rate: 86%                                     Γòæ
+ΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥
+
+≡ƒö┤ FAILURES:
+  Agent 2 (Attendance Tracker): "can I sit for exams"
+    Got: null (greeting/clarify) | Expected: view_my_attendance_report
+  Agent 3 (Results & Grades): "how did I do in exams"
+    Got: null (greeting/clarify) | Expected: view_my_results
+  Agent 7 (Class Manager): "update Rahul GPA to 8.5"
+    Got: null (greeting/clarify) | Expected: update_student
+  Agent 7 (Class Manager): "delete Rahul"
+    Got: null (greeting/clarify) | Expected: delete_student
+  Agent 7 (Class Manager): "remove Harshini from CSE"
+    Got: null (greeting/clarify) | Expected: delete_student
+  Agent 7 (Class Manager): "list all courses"
+    Got: null (greeting/clarify) | Expected: list_courses
+  Agent 7 (Class Manager): "show courses"
+    Got: null (greeting/clarify) | Expected: list_courses
+  Agent 7 (Class Manager): "create course Data Structures CS201 semester 3 CSE 4 credits"
+    Got: null (greeting/clarify) | Expected: create_course
+  Agent 7 (Class Manager): "delete course Data Structures"
+    Got: null (greeting/clarify) | Expected: delete_course
+  Agent 7 (Class Manager): "show all students"
+    Got: null (greeting/clarify) | Expected: list_students
+  Agent 7 (Class Manager): "view records"
+    Got: null (greeting/clarify) | Expected: list_students
+  Agent 8 (Attendance Manager): "record attendance Rahul present"
+    Got: list_attendance | Expected: record_attendance
+  Agent 8 (Attendance Manager): "view all records"
+    Got: record_attendance | Expected: list_attendance
+  Agent 9 (Marks Entry): "enter marks for Rahul CS201 midterm 78"
+    Got: view_marks | Expected: enter_marks
+  Agent 9 (Marks Entry): "add marks"
+    Got: null (greeting/clarify) | Expected: enter_marks
+  Agent 9 (Marks Entry): "delete marks of Amit"
+    Got: null (greeting/clarify) | Expected: delete_marks
+  Agent 9 (Marks Entry): "marks analytics"
+    Got: null (greeting/clarify) | Expected: view_marks_analytics
+  Agent 9 (Marks Entry): "class averages"
+    Got: null (greeting/clarify) | Expected: view_marks_analytics
+  Agent 11 (Analytics Dashboard): "analytics"
+    Got: view_marks_analytics | Expected: generate_report
+  Agent 11 (Analytics Dashboard): "faculty workload"
+    Got: null (greeting/clarify) | Expected: generate_workload
+
+
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+  BONUS: Testing Agent Creation (POST /api/agents)
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+
+  Γ£à PASS: "Manage student enrollment and records" ΓåÆ domain: students, actions: [create_student, update_student, delete_student, list_students]
+  Γ£à PASS: "Handle faculty assignments and workload" ΓåÆ domain: faculty, actions: [add_faculty, list_faculty, delete_faculty, assign_subject, generate_workload]
+  Γ£à PASS: "Course curriculum management" ΓåÆ domain: courses, actions: [create_course, list_courses, update_course, delete_course]
+  Γ¥î FAIL: "Track student attendance" ΓåÆ got domain: students, expected: attendance
+  Γ£à PASS: "Schedule and manage exams" ΓåÆ domain: exams, actions: [schedule_exam, list_exams]
+
+  ≡ƒôè Agent creation: 4/5 passed
+
+≡ƒÅü Validation complete!

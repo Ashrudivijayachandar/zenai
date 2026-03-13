@@ -1,1 +1,22 @@
-[]
+[
+  { "id": 1, "name": "Data Structures", "code": "CS201", "semester": 3, "department": "CSE", "credits": 4, "faculty": "Prof. Rajesh Kumar" },
+  { "id": 2, "name": "Algorithms", "code": "CS301", "semester": 5, "department": "CSE", "credits": 4, "faculty": "Prof. Rajesh Kumar" },
+  { "id": 3, "name": "Database Systems", "code": "IT201", "semester": 3, "department": "IT", "credits": 4, "faculty": "Prof. Sunita Meena" },
+  { "id": 4, "name": "Web Development", "code": "IT301", "semester": 5, "department": "IT", "credits": 3, "faculty": "Prof. Sunita Meena" },
+  { "id": 5, "name": "Digital Electronics", "code": "EC201", "semester": 3, "department": "ECE", "credits": 4, "faculty": "Prof. Venkat Rao" },
+  { "id": 6, "name": "Operating Systems", "code": "CS202", "semester": 4, "department": "CSE", "credits": 4, "faculty": "Prof. Kavitha Sharma" },
+  { "id": 7, "name": "Computer Networks", "code": "CS401", "semester": 6, "department": "CSE", "credits": 3, "faculty": "Prof. Kavitha Sharma" },
+  { "id": 8, "name": "Python Programming", "code": "IT101", "semester": 1, "department": "IT", "credits": 3, "faculty": "Prof. Sunita Meena" },
+  { "id": 9, "name": "Machine Learning", "code": "IT401", "semester": 7, "department": "IT", "credits": 4, "faculty": "Prof. Rekha Nair" },
+  { "id": 10, "name": "Artificial Intelligence", "code": "IT402", "semester": 7, "department": "IT", "credits": 4, "faculty": "Prof. Rekha Nair" },
+  { "id": 11, "name": "Signal Processing", "code": "EC301", "semester": 5, "department": "ECE", "credits": 4, "faculty": "Prof. Venkat Rao" },
+  { "id": 12, "name": "Microprocessors", "code": "EC202", "semester": 4, "department": "ECE", "credits": 4, "faculty": "Prof. Suresh Iyer" },
+  { "id": 13, "name": "Software Engineering", "code": "CS302", "semester": 5, "department": "CSE", "credits": 3, "faculty": "Prof. Priya Krishnan" },
+  { "id": 14, "name": "Cloud Computing", "code": "CS501", "semester": 7, "department": "CSE", "credits": 3, "faculty": "Prof. Priya Krishnan" },
+  { "id": 15, "name": "Thermodynamics", "code": "ME201", "semester": 3, "department": "ME", "credits": 4, "faculty": "Prof. Anil Patel" },
+  { "id": 16, "name": "Fluid Mechanics", "code": "ME301", "semester": 5, "department": "ME", "credits": 4, "faculty": "Prof. Anil Patel" },
+  { "id": 17, "name": "Engineering Mechanics", "code": "MECH101", "semester": 1, "department": "MECH", "credits": 3, "faculty": "Prof. Ramesh Jha" },
+  { "id": 18, "name": "Structural Analysis", "code": "CE201", "semester": 3, "department": "CIVIL", "credits": 4, "faculty": "Prof. Deepa Kulkarni" },
+  { "id": 19, "name": "C Programming", "code": "CS101", "semester": 1, "department": "CSE", "credits": 3, "faculty": "Prof. Rajesh Kumar" },
+  { "id": 20, "name": "Communication Systems", "code": "EC401", "semester": 6, "department": "ECE", "credits": 3, "faculty": "Prof. Suresh Iyer" }
+]

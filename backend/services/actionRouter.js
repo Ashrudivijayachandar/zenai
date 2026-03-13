@@ -94,10 +94,13 @@ function executeAction(action, data, currentUser) {
     case "view_my_marks": {
       if (!currentUser) return { success: false, message: "Please log in to view your marks.", data: null };
       const marks = readData("marks.json");
+      console.log("actionRouter view_my_marks -> received data:", data);
       let myMarks = marks.filter(m => m.studentName.toLowerCase().includes(currentUser.name.toLowerCase()));
       if (data.courseCode) myMarks = myMarks.filter(m => m.courseCode === data.courseCode);
       if (data.courseName) myMarks = myMarks.filter(m => m.courseName.toLowerCase().includes(data.courseName.toLowerCase()));
       if (data.type) myMarks = myMarks.filter(m => m.type === data.type);
+      if (data.minMarks !== undefined) myMarks = myMarks.filter(m => m.marks >= parseFloat(data.minMarks));
+      if (data.maxMarks !== undefined) myMarks = myMarks.filter(m => m.marks <= parseFloat(data.maxMarks));
       if (myMarks.length === 0) return { success: true, message: "No marks records found.", data: [] };
       return { success: true, message: `Found ${myMarks.length} marks record(s).`, data: myMarks };
     }
@@ -265,6 +268,8 @@ function executeAction(action, data, currentUser) {
       if (data.studentName) filtered = filtered.filter(m => m.studentName.toLowerCase().includes(data.studentName.toLowerCase()));
       if (data.courseCode) filtered = filtered.filter(m => m.courseCode === data.courseCode);
       if (data.type) filtered = filtered.filter(m => m.type === data.type);
+      if (data.minMarks !== undefined) filtered = filtered.filter(m => m.marks >= parseFloat(data.minMarks));
+      if (data.maxMarks !== undefined) filtered = filtered.filter(m => m.marks <= parseFloat(data.maxMarks));
       return { success: true, message: `Found ${filtered.length} marks record(s).`, data: filtered };
     }
 

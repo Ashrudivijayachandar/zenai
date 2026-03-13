@@ -1,4 +1,4 @@
-﻿// ΓöÇΓöÇΓöÇ ChatBox ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+// ΓöÇΓöÇΓöÇ ChatBox ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 // Professional chat interface ΓÇö minimal, readable, productivity-tool style
 // ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
@@ -376,11 +376,18 @@ function formatResult(data) {
 
 function getSuggestions(domain) {
   const m = {
-    students:   ["List all students", "Enroll Rahul in IT for 2024", "Show students in CSE", "Delete student Amit"],
-    faculty:    ["List all faculty", "Add Prof. Singh to CSE", "Assign Machine Learning to Prof. Kumar", "Show faculty workload"],
-    courses:    ["List all courses", "Add course Web Dev for semester 5", "Delete course Data Structures"],
-    attendance: ["List attendance records", "Mark Rahul present for CS201", "Show students below 75% attendance"],
-    exams:      ["List upcoming exams", "Schedule exam for Data Structures on April 20"],
+    academic_advisor:    ["View my courses", "What is my GPA?", "Details for course CS201"],
+    attendance_tracker:  ["Show my attendance", "Attendance report"],
+    results___grades:    ["View my marks", "Show my results", "Marks above 85"],
+    timetable___exams:   ["View my timetable", "Show exam schedule"],
+    profile_manager:     ["View my profile", "Update my email to rahul@test.com"],
+    notice_board:        ["Show all notices", "Latest announcements"],
+    class_manager:       ["List all students", "List all courses", "Create student Amit"],
+    attendance_manager:  ["List attendance records", "Mark Rahul present for CS201", "Show students below 75% attendance"],
+    marks_entry:         ["View marks for CS201", "Enter marks for Rahul", "Marks analytics"],
+    schedule_manager:    ["View schedule", "Schedule exam for Data Structures on April 20", "List all exams"],
+    analytics_dashboard: ["Generate report", "Generate workload", "Attendance report", "Marks analytics"],
+    faculty_profile:     ["View my profile", "Update my profile", "List all faculty"],
   };
   return m[domain] || ["List all records", "Generate summary report"];
 }

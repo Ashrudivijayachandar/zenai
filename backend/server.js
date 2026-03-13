@@ -66,7 +66,7 @@ app.get("/api/health", (req, res) => {
 // ---- Start Server ----
 async function startServer() {
   try {
-    await initializeDataStore({ importFromFiles: true });
+    await initializeDataStore({ importFromFiles: true, forceImport: true });
 
     const maxPortAttempts = 10;
     const strictPort = String(process.env.STRICT_PORT || "").toLowerCase() === "true";

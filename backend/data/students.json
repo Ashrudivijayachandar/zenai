@@ -1,1 +1,21 @@
-[]
+[
+  { "id": 1, "name": "Rahul Sharma", "department": "IT", "year": 2024, "gpa": 8.3, "email": "rahul.sharma@university.edu", "phone": "9876543210", "section": "A", "roll_number": "ROLL-2024-001", "enrolledAt": "2024-01-15" },
+  { "id": 2, "name": "Priya Patel", "department": "CSE", "year": 2023, "gpa": 9.1, "email": "priya.patel@university.edu", "phone": "9876543211", "section": "A", "roll_number": "ROLL-2023-002", "enrolledAt": "2023-01-10" },
+  { "id": 3, "name": "Amit Kumar", "department": "ECE", "year": 2024, "gpa": 7.5, "email": "amit.kumar@university.edu", "phone": "9876543212", "section": "B", "roll_number": "ROLL-2024-003", "enrolledAt": "2024-01-15" },
+  { "id": 4, "name": "Sanjay Gupta", "department": "CSE", "year": 2024, "gpa": 7.3, "email": "sanjay.gupta@university.edu", "phone": "9876543213", "section": "A", "roll_number": "ROLL-2024-004", "enrolledAt": "2024-01-15" },
+  { "id": 5, "name": "Meera Krishnan", "department": "ECE", "year": 2023, "gpa": 8.8, "email": "meera.krishnan@university.edu", "phone": "9876543214", "section": "A", "roll_number": "ROLL-2023-005", "enrolledAt": "2023-01-10" },
+  { "id": 6, "name": "Sneha Reddy", "department": "CSE", "year": 2023, "gpa": 8.7, "email": "sneha.reddy@university.edu", "phone": "9876543215", "section": "B", "roll_number": "ROLL-2023-006", "enrolledAt": "2023-01-10" },
+  { "id": 7, "name": "Vikram Singh", "department": "ECE", "year": 2024, "gpa": 7.2, "email": "vikram.singh@university.edu", "phone": "9876543216", "section": "A", "roll_number": "ROLL-2024-007", "enrolledAt": "2024-01-15" },
+  { "id": 8, "name": "Ananya Iyer", "department": "MECH", "year": 2025, "gpa": 9.0, "email": "ananya.iyer@university.edu", "phone": "9876543217", "section": "A", "roll_number": "ROLL-2025-008", "enrolledAt": "2025-01-10" },
+  { "id": 9, "name": "Rohan Mehta", "department": "CSE", "year": 2022, "gpa": 8.1, "email": "rohan.mehta@university.edu", "phone": "9876543218", "section": "A", "roll_number": "ROLL-2022-009", "enrolledAt": "2022-01-12" },
+  { "id": 10, "name": "Kavya Nair", "department": "IT", "year": 2023, "gpa": 9.4, "email": "kavya.nair@university.edu", "phone": "9876543219", "section": "A", "roll_number": "ROLL-2023-010", "enrolledAt": "2023-01-10" },
+  { "id": 11, "name": "Arjun Tiwari", "department": "CIVIL", "year": 2024, "gpa": 7.8, "email": "arjun.tiwari@university.edu", "phone": "9876543220", "section": "A", "roll_number": "ROLL-2024-011", "enrolledAt": "2024-01-15" },
+  { "id": 12, "name": "Divya Mishra", "department": "ECE", "year": 2025, "gpa": 8.5, "email": "divya.mishra@university.edu", "phone": "9876543221", "section": "B", "roll_number": "ROLL-2025-012", "enrolledAt": "2025-01-10" },
+  { "id": 13, "name": "Karthik Raja", "department": "CSE", "year": 2024, "gpa": 6.9, "email": "karthik.raja@university.edu", "phone": "9876543222", "section": "B", "roll_number": "ROLL-2024-013", "enrolledAt": "2024-01-15" },
+  { "id": 14, "name": "Pooja Verma", "department": "MECH", "year": 2023, "gpa": 7.6, "email": "pooja.verma@university.edu", "phone": "9876543223", "section": "A", "roll_number": "ROLL-2023-014", "enrolledAt": "2023-01-10" },
+  { "id": 15, "name": "Nikhil Joshi", "department": "IT", "year": 2022, "gpa": 8.9, "email": "nikhil.joshi@university.edu", "phone": "9876543224", "section": "A", "roll_number": "ROLL-2022-015", "enrolledAt": "2022-01-12" },
+  { "id": 16, "name": "Lakshmi Prasad", "department": "CIVIL", "year": 2025, "gpa": 9.2, "email": "lakshmi.prasad@university.edu", "phone": "9876543225", "section": "A", "roll_number": "ROLL-2025-016", "enrolledAt": "2025-01-10" },
+  { "id": 17, "name": "Aditya Bhatt", "department": "MECH", "year": 2024, "gpa": 6.5, "email": "aditya.bhatt@university.edu", "phone": "9876543226", "section": "B", "roll_number": "ROLL-2024-017", "enrolledAt": "2024-01-15" },
+  { "id": 18, "name": "Riya Shah", "department": "IT", "year": 2025, "gpa": 9.1, "email": "riya.shah@university.edu", "phone": "9876543227", "section": "A", "roll_number": "ROLL-2025-018", "enrolledAt": "2025-01-10" },
+  { "id": 19, "name": "Harshini Reddy", "department": "CSE", "year": 2022, "gpa": 8.6, "email": "harshini.reddy@university.edu", "phone": "9876543228", "section": "A", "roll_number": "ROLL-2022-019", "enrolledAt": "2022-01-12" }
+]

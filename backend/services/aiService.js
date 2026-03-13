@@ -16,7 +16,7 @@ const ACTION_SCHEMAS = {
   view_course_details:  { data: { courseCode: "optional string", name: "optional string" } },
   view_my_attendance:   { data: { courseCode: "optional string", date: "optional YYYY-MM-DD" } },
   view_my_attendance_report: { data: {} },
-  view_my_marks:        { data: { courseCode: "optional string", type: "optional midterm|final" } },
+  view_my_marks:        { data: { courseCode: "optional string", type: "optional midterm|final", minMarks: "optional number", maxMarks: "optional number" } },
   view_my_results:      { data: {} },
   view_my_timetable:    { data: { day: "optional string" } },
   view_exam_schedule:   { data: { course: "optional string", type: "optional string" } },
@@ -29,7 +29,7 @@ const ACTION_SCHEMAS = {
   view_schedule:        { data: { day: "optional string" } },
   // Faculty marks management
   enter_marks:   { data: { studentName: "string", courseCode: "string", courseName: "string", type: "midterm|final", marks: "number", maxMarks: "number" } },
-  view_marks:    { data: { studentName: "optional string", courseCode: "optional string", type: "optional string" } },
+  view_marks:    { data: { studentName: "optional string", courseCode: "optional string", type: "optional string", minMarks: "optional number", maxMarks: "optional number" } },
   update_marks:  { data: { studentName: "string", courseCode: "optional string", type: "optional string", marks: "number" } },
   delete_marks:  { data: { studentName: "string", courseCode: "optional string", type: "optional string" } },
   view_marks_analytics: { data: {} },
@@ -128,6 +128,8 @@ const NLP_EXAMPLES = [
   ["show my marks",                           { action: "view_my_marks", data: {} }],
   ["my midterm marks",                        { action: "view_my_marks", data: { type: "midterm" } }],
   ["marks in CS201",                          { action: "view_my_marks", data: { courseCode: "CS201" } }],
+  ["marks above 85",                          { action: "view_my_marks", data: { minMarks: 85 } }],
+  ["marks below 50",                          { action: "view_my_marks", data: { maxMarks: 50 } }],
   ["my results",                              { action: "view_my_results", data: {} }],
   ["show my results",                         { action: "view_my_results", data: {} }],
   ["how did I do in exams",                   { action: "view_my_results", data: {} }],
@@ -153,6 +155,8 @@ const NLP_EXAMPLES = [
   ["add marks",                               { action: "enter_marks", data: {} }],
   ["show marks for Rahul",                    { action: "view_marks", data: { studentName: "Rahul" } }],
   ["marks of CS201",                          { action: "view_marks", data: { courseCode: "CS201" } }],
+  ["marks above 90",                          { action: "view_marks", data: { minMarks: 90 } }],
+  ["marks less than 40 for Priya",            { action: "view_marks", data: { studentName: "Priya", maxMarks: 40 } }],
   ["update marks of Priya",                   { action: "update_marks", data: { studentName: "Priya" } }],
   ["delete marks of Amit",                    { action: "delete_marks", data: { studentName: "Amit" } }],
   ["marks analytics",                         { action: "view_marks_analytics", data: {} }],
@@ -168,7 +172,7 @@ const NLP_EXAMPLES = [
  * Build a comprehensive Gemini system instruction.
  * Filters to allowed actions only, injects live data context.
  */
-function buildGeminiSystemPrompt(allowedActions, liveContext) {
+function buildGeminiSystemPrompt(allowedActions, liveContext, lastTurnContext) {
   const allowed = allowedActions || Object.keys(ACTION_SCHEMAS);
 
   // Build action reference block
@@ -198,6 +202,16 @@ function buildGeminiSystemPrompt(allowedActions, liveContext) {
     }
   }
 
+  // Build last-turn context block for conversation continuity
+  let lastTurnBlock = "";
+  if (lastTurnContext) {
+    lastTurnBlock = `\n\nLAST TURN CONTEXT:\n` +
+      `  Your previous action was: ${lastTurnContext.lastAiAction || "none"}\n` +
+      `  Your previous response was: ${(lastTurnContext.lastAiResponse || "").slice(0, 200)}\n` +
+      `  The user's previous message was: ${lastTurnContext.lastUserMessage || "none"}\n` +
+      `  If the user's current message looks like an answer to your previous question, CONTINUE that flow.`;
+  }
+
   return `You are the decision engine for a university agent.
 
 Your job is to classify intent from full conversation context and return one safe structured decision.
@@ -213,6 +227,26 @@ CRITICAL RULES:
 4. If required fields are missing, set action to "clarify" and ask naturally.
 5. Never invent placeholder values like "Unknown" or "TBD".
 6. Connect multi-turn context. If previous turn asked for student name and latest message is a name, continue that flow.
+
+CONVERSATION CONTINUITY — CRITICAL:
+Always read the full conversation history.
+If your previous message asked a question like "Which student?" or "What field?" and the user's current message is a short answer like a name ("Kavin") or a field ("email") — CONNECT them and continue the action flow.
+NEVER show the help menu when the user is answering your previous question.
+If the previous action was "clarify", assume the latest message is answering that clarification.
+
+INTENT SAFETY RULES:
+If the user message contains ANY of these words: list, show, view, display, check, get, all, records, report, marms, maks, viwe, lsit
+→ The action MUST start with "list_" or "view_" or "attendance_report" or "generate_report" or "view_marks_analytics"
+→ NEVER return a create/insert/add/schedule/record action for a viewing query
+→ This is non-negotiable
+
+MISSING INFO RULES:
+If user says "create" or "add" or "enroll" WITHOUT providing a real name:
+→ action: "clarify"
+→ Ask for the missing details naturally
+→ NEVER use "New Student" or "Unknown" or "TBD" as a default name
+→ NEVER use placeholder values for any required field
+${lastTurnBlock}
 
 ALLOWED ACTIONS AND DATA SCHEMAS:
 ${actionBlock}
@@ -347,9 +381,9 @@ function resolveGeminiDecision(parsed, userQuery, allowedActions) {
  * @param {number} agentId - The agent ID (1-12) for context-aware responses
  */
 async function processQuery(systemPrompt, userQuery, apiKey, allowedActions, liveContext, agentId, conversationContext = null) {
-  const smartPrompt = buildGeminiSystemPrompt(allowedActions, liveContext);
-  const decisionPrompt = buildGeminiDecisionPrompt(userQuery, liveContext, conversationContext);
   const lastTurnContext = getLastTurnContext(conversationContext);
+  const smartPrompt = buildGeminiSystemPrompt(allowedActions, liveContext, lastTurnContext);
+  const decisionPrompt = buildGeminiDecisionPrompt(userQuery, liveContext, conversationContext);
 
   if (!apiKey || apiKey === "your-gemini-api-key-here") {
     return generateMockResponse(userQuery, allowedActions, liveContext, agentId, lastTurnContext);
@@ -469,7 +503,7 @@ function buildConfirmationMessage(parsed, liveContext) {
 // ═════════════════════════════════════════════════════════════════
 
 const ACTION_ALIASES = {
-  // Attendance aliases
+  // ── Attendance aliases ──
   "attendance_report":       "attendance_report",
   "get_attendance":          "list_attendance",
   "show_attendance":         "list_attendance",
@@ -479,7 +513,7 @@ const ACTION_ALIASES = {
   "view_attendance":         "list_attendance",
   "attendance_summary":      "attendance_report",
   "attendance_percentage":   "view_my_attendance_report",
-  // Marks aliases
+  // ── Marks aliases ──
   "get_marks":               "view_marks",
   "show_marks":              "view_marks",
   "fetch_marks":             "view_marks",
@@ -487,22 +521,71 @@ const ACTION_ALIASES = {
   "check_marks":             "view_marks",
   "get_results":             "view_my_results",
   "show_results":            "view_my_results",
-  // GPA aliases
+  "add_marks":               "enter_marks",
+  "create_marks":            "enter_marks",
+  "edit_marks":              "update_marks",
+  "modify_marks":            "update_marks",
+  "remove_marks":            "delete_marks",
+  // ── GPA aliases ──
   "get_gpa":                 "view_my_gpa",
   "show_gpa":                "view_my_gpa",
   "view_gpa":                "view_my_gpa",
   "check_gpa":               "view_my_gpa",
-  // Schedule aliases
+  // ── Schedule aliases ──
   "get_schedule":            "view_schedule",
   "show_schedule":           "view_schedule",
   "get_timetable":           "view_my_timetable",
   "show_timetable":          "view_my_timetable",
   "view_timetable":          "view_my_timetable",
-  // Profile aliases
+  // ── Profile aliases ──
   "get_profile":             "view_my_profile",
   "show_profile":            "view_my_profile",
-  // Generic aliases
-  "select":                  null, // handled contextually
+  // ── Student CRUD aliases ──
+  "add_student":             "create_student",
+  "enroll_student":          "create_student",
+  "new_student":             "create_student",
+  "register_student":        "create_student",
+  "edit_student":            "update_student",
+  "modify_student":          "update_student",
+  "change_student":          "update_student",
+  "remove_student":          "delete_student",
+  "erase_student":           "delete_student",
+  "view_students":           "list_students",
+  "show_students":           "list_students",
+  "get_students":            "list_students",
+  "fetch_students":          "list_students",
+  // ── Faculty aliases ──
+  "create_faculty":          "add_faculty",
+  "new_faculty":             "add_faculty",
+  "hire_faculty":            "add_faculty",
+  "remove_faculty":          "delete_faculty",
+  "view_faculty":            "list_faculty",
+  "show_faculty":            "list_faculty",
+  "get_faculty":             "list_faculty",
+  "fetch_faculty":           "list_faculty",
+  // ── Course aliases ──
+  "add_course":              "create_course",
+  "new_course":              "create_course",
+  "edit_course":             "update_course",
+  "modify_course":           "update_course",
+  "remove_course":           "delete_course",
+  "view_courses":            "list_courses",
+  "show_courses":            "list_courses",
+  "get_courses":             "list_courses",
+  "fetch_courses":           "list_courses",
+  // ── Exam aliases ──
+  "schedule_examination":    "schedule_exam",
+  "view_exams":              "list_exams",
+  "show_exams":              "list_exams",
+  "get_exams":               "list_exams",
+  // ── Report aliases ──
+  "university_report":       "generate_report",
+  "full_report":             "generate_report",
+  "analytics_report":        "generate_report",
+  "get_report":              "generate_report",
+  "show_report":             "generate_report",
+  // ── Generic aliases (handled contextually) ──
+  "select":                  null,
   "get":                     null,
   "show":                    null,
   "view":                    null,
@@ -645,13 +728,16 @@ function checkForRedirect(query, agentId, allowedActions) {
   const isFacultyAgent = agentId >= 7;
 
   // Topic detection for redirect
+  // FIX 7: Skip redirect for compound topics like "exam notices" — notice takes priority
+  const hasNoticeKeyword = q.includes("notice") || q.includes("announcement") || q.includes("bulletin");
+
   const topicChecks = [
     { topic: "fees",       keywords: ["fee","fees","payment","tuition","challan"] },
     { topic: "attendance", keywords: ["attendance","present","absent","bunk","shortage","detained","detention"] },
     { topic: "marks",      keywords: ["marks","mark","score","scored","scoring"] },
     { topic: "results",    keywords: ["result","results","scorecard","grade card","marksheet"] },
     { topic: "timetable",  keywords: ["timetable","time table","schedule","class timing","period"] },
-    { topic: "exam",       keywords: ["exam","exams","examination","test date","quiz"] },
+    { topic: "exam",       keywords: hasNoticeKeyword ? [] : ["exam","exams","examination","test date","quiz"] },
     { topic: "profile",    keywords: ["profile","my info","my details","personal","phone","email","update my"] },
     { topic: "notices",    keywords: ["notice","notices","announcement","bulletin","circular"] },
     { topic: "gpa",        keywords: ["gpa","cgpa","grade point","grade","grades","grading"] },
@@ -936,6 +1022,7 @@ function generateMockResponse(query, allowedActions, liveContext, agentId, conve
   const isReport   = REPORT_WORDS.some(w => q.includes(w));
   const isWorkload = WORKLOAD_WORDS.some(w => q.includes(w));
   const isAttend   = ATTEND_WORDS.some(w => q.includes(w));
+  const isMarks    = /\b(marks?|grades?|scores?|results?)\b/i.test(q);
 
   const isFacultyWord = q.includes("faculty") || q.includes("prof") || q.includes("professor") || q.includes("teacher") || q.includes("lecturer");
   const isCourseWord  = q.includes("course") || q.includes("subject") || q.includes("class");
@@ -943,17 +1030,59 @@ function generateMockResponse(query, allowedActions, liveContext, agentId, conve
   const wantsAll      = q.includes(" all ");
   const isProfileUpdateAgent = allowed.includes("update_my_profile") || allowed.includes("update_my_faculty_profile");
 
-  // Follow-up context: user sends only a name after asking to update student.
-  const maybeOnlyName = /^[A-Za-z][A-Za-z\s'.-]{1,40}$/.test(normalizedQuery.trim());
+  // Follow-up context: user answers a previous clarification question
+  // FIX 1: maybeOnlyName must NOT match queries containing action/entity keywords
+  const _looksLikeName = /^[A-Za-z][A-Za-z\s'.-]{1,40}$/.test(normalizedQuery.trim());
+  const _hasActionWords = /\b(show|view|list|get|display|fetch|create|add|enroll|update|edit|change|delete|remove|drop|enter|mark|record|schedule|assign|report|generate|all|my|students?|faculty|courses?|marks?|attendance|exam|profile|notices?|workload|analytics|timetable|help|hello|hi|hey)\b/i.test(normalizedQuery.trim());
+  const maybeOnlyName = _looksLikeName && !_hasActionWords;
   const lastMsg = (conversationContext?.lastUserMessage || "").toLowerCase();
-  if (maybeOnlyName && allowed.includes("update_student") && /\b(update|edit|change|modify)\b/.test(lastMsg) && lastMsg.includes("student")) {
-    return {
-      action: null,
-      response:
-        `Got it — student **${normalizedQuery.trim()}**. What would you like to update?\n` +
-        "• Department\n• Year\n• GPA\n• Email\n• Phone\n" +
-        "Example: update student " + normalizedQuery.trim() + " email to student@university.edu",
-    };
+  const lastAiAction = conversationContext?.lastAiAction || null;
+  const lastAiResponse = (conversationContext?.lastAiResponse || "").toLowerCase();
+  const aiAskedForName = /which student|student name|provide.*name|specify.*name|who.*update|who.*delete|who.*want/i.test(lastAiResponse);
+  const aiAskedForField = /what.*update|what.*change|what field|which field/i.test(lastAiResponse);
+
+  // If last AI response asked for a name and user sent just a name → continue the flow
+  if (maybeOnlyName && aiAskedForName) {
+    const studentName = normalizedQuery.trim();
+    // Determine which action was in progress from the last conversation context
+    if (allowed.includes("update_student") && (/\b(update|edit|change|modify)\b/.test(lastMsg) || lastAiAction === "update_student")) {
+      return {
+        action: null,
+        response:
+          `Got it — student **${studentName}**. What would you like to update?\n` +
+          "• Department\n• Year\n• GPA\n• Email\n• Phone\n" +
+          "Example: update student " + studentName + " email to student@university.edu",
+      };
+    }
+    if (allowed.includes("delete_student") && (/\b(delete|remove|drop)\b/.test(lastMsg) || lastAiAction === "delete_student")) {
+      return {
+        action: { action: "delete_student", data: { name: studentName } },
+        response: `Removing student "${studentName}" from records. 🗑️`,
+      };
+    }
+    if (allowed.includes("create_student") && (/\b(create|add|enroll|register)\b/.test(lastMsg) || lastAiAction === "create_student")) {
+      return {
+        action: null,
+        response:
+          `Got it — enrolling **${studentName}**. Please also provide the department.\n` +
+          "Example: " + studentName + " CSE 2024",
+      };
+    }
+    // Generic: if AI asked for a name but we can't tell the action, ask for clarification
+    if (/\b(update|edit|change|modify)\b/.test(lastAiResponse)) {
+      return {
+        action: null,
+        response:
+          `Got it — **${studentName}**. What would you like to update?\n` +
+          "• Department\n• Year\n• GPA\n• Email\n• Phone",
+      };
+    }
+  }
+
+  // If last AI response asked for a field and user sent a short answer → build data from it
+  if (aiAskedForField && q.length < 40 && !isGreeting && !isHelp) {
+    // User is answering "what to update" — pass through to intent detection below
+    // (the existing logic handles partial update queries already)
   }
 
   const dept = detectDept(tokens);
@@ -975,7 +1104,9 @@ function generateMockResponse(query, allowedActions, liveContext, agentId, conve
   const semMatch = query.match(/semester\s*[:=]?\s*(\d+)/i) || query.match(/sem\s*[:=]?\s*(\d+)/i);
   const semester = semMatch ? parseInt(semMatch[1]) : undefined;
 
-  const isFieldUpdate = (isCreate || isUpdate) &&
+  // FIX 2: isFieldUpdate should only fire for update intents, NOT create
+  // "add student Ravi to IT year 3" was incorrectly hitting update_student because isCreate + "to" + "year"
+  const isFieldUpdate = isUpdate && !isCreate &&
     (q.includes(" to ") || q.includes(" for ") || q.includes(" of ")) &&
     (q.includes("phone") || q.includes("mobile") || q.includes("email") || q.includes("gpa") ||
      q.includes("year") || q.includes("number") || q.includes("address") || q.includes("section") ||
@@ -1027,19 +1158,27 @@ function generateMockResponse(query, allowedActions, liveContext, agentId, conve
   // Handle bare keywords: "gpa", "result", "courses", "attendance", etc.
   // These should resolve to the correct action based on agent context.
 
+  // FIX 5: Add "scorecard", "how did i do", "how did i perform" to results patterns
   // GPA / CGPA / Grades / Performance / Result
   if (q.match(/\b(gpa|cgpa|grade\s*point|grades?|performance|academic\s*score|overall\s*score)\b/) ||
-      q.match(/\b(result|results|how\s*am\s*i\s*doing)\b/)) {
-    if (allowed.includes("view_my_gpa")) {
+      q.match(/\b(result|results|scorecard|how\s*am\s*i\s*doing|how\s*did\s*i\s*do|how\s*did\s*i\s*perform)\b/)) {
+    if (allowed.includes("view_my_gpa") && !q.includes("result") && !q.includes("scorecard") && !q.includes("how did")) {
       return { action: { action: "view_my_gpa", data: {} }, response: "Here is your current GPA. 📊" };
     }
     if (allowed.includes("view_my_results")) {
       return { action: { action: "view_my_results", data: {} }, response: "Here are your results. 📝" };
     }
+    if (allowed.includes("view_my_gpa")) {
+      return { action: { action: "view_my_gpa", data: {} }, response: "Here is your current GPA. 📊" };
+    }
   }
 
-  // Courses / Subjects / Enrolled / Studying / Classes (student context)
+  // FIX 3: Courses — prefer list_courses when "all" or "list" is present
   if (q.match(/\b(courses?|subjects?|enrolled|studying|what\s*am\s*i\s*studying|class\s*list)\b/) && !isDelete && !isCreate && !isUpdate) {
+    // If user says "list all courses" or "show courses" — prefer list_courses (all courses)
+    if (allowed.includes("list_courses") && (wantsAll || /\b(list|show|view|display|get)\b/.test(q))) {
+      return { action: { action: "list_courses", data: dept ? { department: dept } : {} }, response: "Here are the available courses. 📚" };
+    }
     if (allowed.includes("view_my_courses")) {
       return { action: { action: "view_my_courses", data: {} }, response: "Here are your enrolled courses. 📚" };
     }
@@ -1048,8 +1187,9 @@ function generateMockResponse(query, allowedActions, liveContext, agentId, conve
     }
   }
 
-  // Attendance report / percentage / below 75 / shortage / bunk (MUST be before generic attendance match)
-  if (q.match(/\b(attendance\s*report|attendance\s*percent|below\s*75|shortage|bunk|how\s*many\s*can\s*i\s*(miss|bunk|skip)|detained|detention)\b/)) {
+  // FIX 4: Attendance report — fixed "percentage" not matching due to trailing \b, added "can I sit"
+  if (q.match(/\b(attendance\s*report|attendance\s*percent|attendance\s*percentage|below\s*75|shortage|bunk|how\s*many\s*can\s*i\s*(miss|bunk|skip)|detained|detention|can\s*i\s*sit)/) ||
+      (q.includes("attendance") && (q.includes("percent") || q.includes("report") || q.includes("eligible") || q.includes("shortage")))) {
     if (allowed.includes("view_my_attendance_report")) {
       return { action: { action: "view_my_attendance_report", data: {} }, response: "Here is your attendance report. ⚠️" };
     }
@@ -1072,21 +1212,9 @@ function generateMockResponse(query, allowedActions, liveContext, agentId, conve
     }
   }
 
-  // Marks / Score single-word
-  if (q.match(/\b(marks?|score|scored|scoring|midterm|final\s*marks?)\b/) && !isCreate && !isDelete && !isUpdate) {
-    if (allowed.includes("view_my_marks")) {
-      const courseCodeMatch = query.match(/\b([A-Z]{2,4}\d{3,4})\b/);
-      const type = q.includes("midterm") ? "midterm" : q.includes("final") ? "final" : undefined;
-      return { action: { action: "view_my_marks", data: { ...(courseCodeMatch ? { courseCode: courseCodeMatch[1] } : {}), ...(type ? { type } : {}) } }, response: "Here are your marks. 📝" };
-    }
-    if (allowed.includes("view_marks")) {
-      const name = detectName(tokens.filter(t => !["show","view","list","get","marks","grade","score","of","for"].includes(t.toLowerCase())), studentNames);
-      const courseCodeMatch = query.match(/\b([A-Z]{2,4}\d{3,4})\b/);
-      return { action: { action: "view_marks", data: { ...(name ? { studentName: name } : {}), ...(courseCodeMatch ? { courseCode: courseCodeMatch[1] } : {}) } }, response: "Here are the marks records. 📝" };
-    }
-  }
+  // Marks / Score single-word block removed due to duplicate advanced handling in isMarks
 
-  // Timetable / Schedule
+  // FIX 6: Timetable/Schedule — prefer view_exam_schedule when "exam" keyword present
   if (q.match(/\b(timetable|time\s*table|schedule|class\s*timing|period|today|tomorrow|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/) && !isScheduleCreateIntent) {
     const days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
     let dayVal = null;
@@ -1094,7 +1222,11 @@ function generateMockResponse(query, allowedActions, liveContext, agentId, conve
     if (q.includes("today")) { dayVal = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()]; }
     if (q.includes("tomorrow")) { dayVal = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][(new Date().getDay() + 1) % 7]; }
 
-    if (allowed.includes("view_my_timetable")) {
+    // If query mentions "exam" — prefer exam schedule over timetable
+    if (isExamWord && allowed.includes("view_exam_schedule")) {
+      return { action: { action: "view_exam_schedule", data: {} }, response: "Here is the exam schedule. 📝" };
+    }
+    if (allowed.includes("view_my_timetable") && !isExamWord) {
       return { action: { action: "view_my_timetable", data: dayVal ? { day: dayVal } : {} }, response: "Here is your timetable. 📅" };
     }
     if (allowed.includes("view_schedule")) {
@@ -1195,11 +1327,7 @@ function generateMockResponse(query, allowedActions, liveContext, agentId, conve
     if ((q.includes("result") || q.includes("scorecard")) && allowed.includes("view_my_results")) {
       return { action: { action: "view_my_results", data: {} }, response: "Here are your results. 📝" };
     }
-    if ((q.includes("mark") || q.includes("score")) && allowed.includes("view_my_marks")) {
-      const courseCodeMatch = query.match(/\b([A-Z]{2,4}\d{3,4})\b/);
-      const type = q.includes("midterm") ? "midterm" : q.includes("final") ? "final" : undefined;
-      return { action: { action: "view_my_marks", data: { ...(courseCodeMatch ? { courseCode: courseCodeMatch[1] } : {}), ...(type ? { type } : {}) } }, response: "Here are your marks. 📝" };
-    }
+    // view_my_marks condition removed
     if ((q.includes("timetable") || q.includes("schedule") || q.includes("class")) && allowed.includes("view_my_timetable")) {
       const days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
       let dayVal = null;
@@ -1235,6 +1363,16 @@ function generateMockResponse(query, allowedActions, liveContext, agentId, conve
   }
 
   // ─── 6. FACULTY-SPECIFIC CRUD ACTIONS ───────────────────────
+
+  // FIX 9: Marks analytics / class averages — check early, even without "marks" keyword
+  if ((q.includes("analytics") || q.includes("average") || q.includes("averages") || q.includes("class average")) && allowed.includes("view_marks_analytics")) {
+    return { action: { action: "view_marks_analytics", data: {} }, response: "Here are the marks analytics. 📊" };
+  }
+
+  // FIX 10: Workload — check early, even without compound keywords
+  if ((q.includes("workload") || q.includes("work load") || (q.includes("faculty") && q.includes("load"))) && allowed.includes("generate_workload")) {
+    return { action: { action: "generate_workload", data: {} }, response: "Generating faculty workload report. 📈" };
+  }
 
   // Marks management (faculty)
   if (q.includes("marks") || q.includes("grade") || q.includes("score")) {
@@ -1274,16 +1412,41 @@ function generateMockResponse(query, allowedActions, liveContext, agentId, conve
     if (allowed.includes("view_marks")) {
       const name = detectName(tokens.filter(t => !["show","view","list","get","marks","grade","score","of","for"].includes(t.toLowerCase())), studentNames);
       const courseCodeMatch = query.match(/\b([A-Z]{2,4}\d{3,4})\b/);
-      return { action: { action: "view_marks", data: { ...(name ? { studentName: name } : {}), ...(courseCodeMatch ? { courseCode: courseCodeMatch[1] } : {}) } }, response: "Here are the marks records. 📊" };
+      let minMarks, maxMarks;
+      const aboveMatch = query.match(/(?:above|greater than|>)\s*(\d+(\.\d+)?)/i);
+      const belowMatch = query.match(/(?:below|less than|under|<)\s*(\d+(\.\d+)?)/i);
+      if (aboveMatch) minMarks = parseFloat(aboveMatch[1]);
+      if (belowMatch) maxMarks = parseFloat(belowMatch[1]);
+
+      return { action: { action: "view_marks", data: { ...(name ? { studentName: name } : {}), ...(courseCodeMatch ? { courseCode: courseCodeMatch[1] } : {}), ...(minMarks !== undefined ? { minMarks } : {}), ...(maxMarks !== undefined ? { maxMarks } : {}) } }, response: "Here are the marks records." };
     }
   }
 
-  // Course details
-  if ((q.includes("detail") || q.includes("about")) && (q.includes("course") || query.match(/\b[A-Z]{2,4}\d{3,4}\b/))) {
+  // FIX 8: Course details — also match course names from liveContext without needing "course" keyword
+  const _hasCourseNameMatch = courseNames.some(cn => q.includes(cn.toLowerCase()));
+  if ((q.includes("detail") || q.includes("about")) && (q.includes("course") || query.match(/\b[A-Z]{2,4}\d{3,4}\b/) || _hasCourseNameMatch)) {
     const courseCodeMatch = query.match(/\b([A-Z]{2,4}\d{3,4})\b/);
     const name = detectName(tokens.filter(t => !["detail","details","about","course","tell","me"].includes(t.toLowerCase())), courseNames);
     if (allowed.includes("view_course_details")) {
       return { action: { action: "view_course_details", data: { ...(courseCodeMatch ? { courseCode: courseCodeMatch[1] } : {}), ...(name ? { name } : {}) } }, response: "Here are the course details. 📖" };
+    }
+  }
+
+  // Marks operations
+  if (isMarks) {
+    if (allowed.includes("view_my_marks")) {
+      const type = q.includes("midterm") ? "midterm" : q.includes("final") ? "final" : undefined;
+      const courseCodeMatch = query.match(/\b([A-Z]{2,4}\d{3,4})\b/);
+      let minMarks, maxMarks;
+      const aboveMatch = query.match(/(?:above|greater than|>)\s*(\d+(\.\d+)?)/i);
+      const belowMatch = query.match(/(?:below|less than|under|<)\s*(\d+(\.\d+)?)/i);
+      if (aboveMatch) minMarks = parseFloat(aboveMatch[1]);
+      if (belowMatch) maxMarks = parseFloat(belowMatch[1]);
+      
+      return { action: { action: "view_my_marks", data: { ...(courseCodeMatch ? { courseCode: courseCodeMatch[1] } : {}), ...(type ? { type } : {}), ...(minMarks !== undefined ? { minMarks } : {}), ...(maxMarks !== undefined ? { maxMarks } : {}) } }, response: "Here are your marks. 📊" };
+    }
+    if (allowed.includes("view_my_results")) {
+      return { action: { action: "view_my_results", data: {} }, response: "Here is your overall performance result. 📈" };
     }
   }
 
